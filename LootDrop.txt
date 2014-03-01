@@ -1,0 +1,6 @@
+## Title: LootDrop - By Pawkette
+## APIVersion: 100000
+
+LootDroppable.lua
+LootDrop.lua
+LootDrop.xml
