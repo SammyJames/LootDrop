@@ -122,7 +122,6 @@ function LootDrop:OnMoneyUpdated( _, money, _ )
     newDrop:SetIcon( 'EsoUI/Art/Icons/Item_Generic_CoinBag.dds' )
     newDrop:SetLabel( difference )
     newDrop:SetTimestamp( GetTimeStamp() )
-    newDrop:Show()
 end
 
 function LootDrop:GetControl()
