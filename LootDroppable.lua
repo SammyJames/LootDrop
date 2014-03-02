@@ -19,15 +19,17 @@ function LootDroppable:Initialize( objectPool )
     self.label = self.control:GetNamedChild( '_Name' )
     self.icon = self.control:GetNamedChild( '_Icon' )
 
+    self.animation = ZO_AlphaAnimation:New( self.control )
+
     self:Reset()
 end
 
 function LootDroppable:Show()
-    self.control:SetHidden( false )
+    self.animation:FadeIn( 0, 200 )
 end
 
 function LootDroppable:Reset()
-    self.control:SetHidden( true )
+    self.animation:FadeOut( 0, 200 )
     self.label:SetText( '' )
     self.timestamp = 0
 end
