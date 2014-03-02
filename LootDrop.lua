@@ -7,6 +7,7 @@
 ------------------------------------------------
 local LootDrop = ZO_ObjectPool:Subclass()
 LootDrop.dirty_flags = {}
+LootDrop.current_money = 0
 
 local DirtyFlags =
 {
@@ -25,7 +26,10 @@ end
 -- @param ...
 function LootDrop:Initialize( control )
     self.control = control
+    self.current_money = GetCurrentMoney()
+
     self.control:RegisterForEvent( EVENT_LOOT_RECEIVED, function( ... ) self:OnItemLooted( ... ) end )
+    self.control:RegisterForEvent( EVENT_MONEY_UPDATE, function( ... ) self:OnMoneyUpdated( ... ) end )
     self.control:SetHandler( 'OnUpdate', function() self:OnUpdate() end )
 end
 
@@ -42,21 +46,9 @@ function LootDrop:IsDirty( flag )
 end
 
 function LootDrop:OnUpdate() 
-    if ( self:GetActiveObjectCount() == 0 ) then
+    if ( not self:GetActiveObjectCount() ) then
         return
     end
-
-    if ( self:IsDirty( DirtyFlags.LAYOUT ) ) then
-        local lastObject = self:GetControl()
-        local point = BOTTOMRIGHT
-        for _,v in pairs( self:GetActiveObjects() ) do
-            v:SetAnchor( BOTTOMRIGHT, lastObject, point, 0, -3 )
-            lastObject = v:GetControl()
-            point = TOPRIGHT
-        end
-    end
-
-    self.dirty_flags = {}
 
     local currentTime = GetTimeStamp()
     for k,v in pairs( self:GetActiveObjects() ) do
@@ -65,6 +57,20 @@ function LootDrop:OnUpdate()
             table.insert( self.dirty_flags, DirtyFlags.LAYOUT )
         end
     end
+
+    if ( self:IsDirty( DirtyFlags.LAYOUT ) ) then
+        local last_y = 0
+        for _,v in pairs( self:GetActiveObjects() ) do
+            if ( not v:IsVisible() ) then
+                v:Show( last_y )
+            else            
+                v:TranslateTo( 0, v:GetOffsetY(), 0, last_y, 200, 0 )
+            end
+            last_y = last_y - 43
+        end
+    end
+
+    self.dirty_flags = {}
 end
 
 --- Create a new loot droppable
@@ -92,8 +98,32 @@ function LootDrop:OnItemLooted( _, _, itemName, quantity, _, _, mine )
     newDrop:SetIcon( icon )
     newDrop:SetLabel( zo_strformat( '<<1>> <<2[//x$d]>>', itemName, quantity ) )
     newDrop:SetTimestamp( GetTimeStamp() )
-    newDrop:Show()
 end 
+
+function LootDrop:OnMoneyUpdated( _, money, _ )
+    if ( self.current_money == money ) then
+        return
+    end
+
+    local difference = money - self.current_money
+
+    if ( difference > 0 ) then
+        difference = '+' .. tostring( difference )
+    else
+        difference = tostring( difference )
+    end
+
+    self.current_money = money
+
+    local newDrop, _ = self:AcquireObject()
+
+    table.insert( self.dirty_flags, DirtyFlags.LAYOUT )
+
+    newDrop:SetIcon( 'EsoUI/Art/Icons/Item_Generic_CoinBag.dds' )
+    newDrop:SetLabel( difference )
+    newDrop:SetTimestamp( GetTimeStamp() )
+    newDrop:Show()
+end
 
 function LootDrop:GetControl()
     return self.control
