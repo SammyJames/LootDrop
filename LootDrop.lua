@@ -66,7 +66,7 @@ function LootDrop:OnUpdate()
             else            
                 v:TranslateTo( 0, v:GetOffsetY(), 0, last_y, 200, 0 )
             end
-            last_y = last_y - 43
+            last_y = last_y - 45
         end
     end
 
