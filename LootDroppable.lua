@@ -30,12 +30,16 @@ THE SOFTWARE.
 
 LootDroppable = ZO_Object:Subclass()
 
+--- Create a new instance of a LootDroppable
+-- @treturn LootDroppable
 function LootDroppable:New( ... )
     local result = ZO_Object.New( self )
     result:Initialize( ... )
     return result
 end
 
+--- Constructor
+--
 function LootDroppable:Initialize( objectPool )
     self.control = CreateControlFromVirtual( 'LootDroppable', objectPool:GetControl(), 'LootDroppable', objectPool:GetNextControlId() )
     self.label = self.control:GetNamedChild( '_Name' )
@@ -53,15 +57,20 @@ function LootDroppable:Initialize( objectPool )
     self.timestamp = 0
 end
 
+--- Visibility Getter
+-- @treturn boolean
 function LootDroppable:IsVisible()
     return self.control:GetAlpha() > 0
 end
 
+--- Show this droppable
+-- @tparam number y
 function LootDroppable:Show( y )
     self.animation:FadeIn( 0, 200 )
     self.translate:TranslateTo( 220, y, 0, y, 200, 0 )
 end
 
+--- Reset this droppable
 function LootDroppable:Reset()
     self.animation:FadeOut( 0, 200 )
     local y = self:GetOffsetY()
@@ -72,35 +81,49 @@ function LootDroppable:Reset()
     self.timestamp = 0
 end
 
+--- Control getter
+-- @treturn table
 function LootDroppable:GetControl()
     return self.control
 end
 
+--- Set show timestamp
+-- @tparam number stamp
 function LootDroppable:SetTimestamp( stamp )
     self.timestamp = stamp
 end
 
+--- Get show timestamp
+-- @treturn number
 function LootDroppable:GetTimestamp()
     return self.timestamp
 end
 
+--- Set label
+-- @tparam string label
 function LootDroppable:SetLabel( label )
     self.label:SetText( label )
 end
 
+--- Set Icon
+-- @tparam string icon
 function LootDroppable:SetIcon( icon )
     self.icon:SetTexture( icon )
     self.icon:SetHidden( false )
 end
 
+--- Pass anchor information to control
 function LootDroppable:SetAnchor( ... )
     self.control:SetAnchor( ... )
 end
 
+--- Pass translate information to animation
 function LootDroppable:TranslateTo( ... )
     self.translate:TranslateTo( ... )
 end
 
+--- Get current y offset
+-- @treturn number
 function LootDroppable:GetOffsetY()
     local _, _, _, _, _, offsY = self.control:GetAnchor( 0 )
     return offsY

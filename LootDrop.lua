@@ -27,13 +27,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]
 ------------------------------------------------
-local LootDrop = ZO_ObjectPool:Subclass()
-LootDrop.dirty_flags = {}
-LootDrop.current_money = 0
+local LootDrop          = ZO_ObjectPool:Subclass()
+LootDrop.dirty_flags    = {}
+LootDrop.current_money  = 0
+LootDrop.current_xp     = 0
 
+--- Flags for updating UI aspects
 local DirtyFlags =
 {
-    LAYOUT = 1
+    LAYOUT = 1 -- we've added or removed a droppable
 }
 
 --- Create our ObjectPool
@@ -47,14 +49,21 @@ end
 --- I swear I'm going to use this for something
 -- @param ...
 function LootDrop:Initialize( control )
-    self.control = control
-    self.current_money = GetCurrentMoney()
+    self.control        = control
+    self.current_money  = GetCurrentMoney()
+    self.current_xp     = GetUnitXP( 'player' )
 
-    self.control:RegisterForEvent( EVENT_LOOT_RECEIVED, function( ... ) self:OnItemLooted( ... ) end )
-    self.control:RegisterForEvent( EVENT_MONEY_UPDATE, function( ... ) self:OnMoneyUpdated( ... ) end )
+    self.control:RegisterForEvent( EVENT_LOOT_RECEIVED,     function( ... ) self:OnItemLooted( ... )    end )
+    self.control:RegisterForEvent( EVENT_MONEY_UPDATE,      function( ... ) self:OnMoneyUpdated( ... )  end )
+    self.control:RegisterForEvent( EVENT_EXPERIENCE_UPDATE, function( ... ) self:OnXPUpdated( ... )     end )
+
     self.control:SetHandler( 'OnUpdate', function() self:OnUpdate() end )
 end
 
+--- Check if any flags are set
+-- if no flag is passed will check if any flag is set.
+-- @tparam DirtyFlags flag
+-- @treturn boolean
 function LootDrop:IsDirty( flag )
     if ( not flag ) then return #self.dirty_flags ~= 0 end
 
@@ -67,6 +76,7 @@ function LootDrop:IsDirty( flag )
     return false
 end
 
+--- On every consecutive frame
 function LootDrop:OnUpdate() 
     if ( not self:GetActiveObjectCount() ) then
         return
@@ -107,6 +117,10 @@ function LootDrop:ResetDroppable( droppable )
     droppable:Reset()
 end
 
+--- Called when you loot an Item
+-- @tparam string itemName
+-- @tparam number quantity 
+-- @tparam boolean mine
 function LootDrop:OnItemLooted( _, _, itemName, quantity, _, _, mine )
     if ( not mine ) then
         return
@@ -122,6 +136,8 @@ function LootDrop:OnItemLooted( _, _, itemName, quantity, _, _, mine )
     newDrop:SetTimestamp( GetTimeStamp() )
 end 
 
+--- Called when the amount of money you have changes
+-- @tparam number money 
 function LootDrop:OnMoneyUpdated( _, money, _ )
     if ( self.current_money == money ) then
         return
@@ -146,6 +162,30 @@ function LootDrop:OnMoneyUpdated( _, money, _ )
     newDrop:SetTimestamp( GetTimeStamp() )
 end
 
+function LootDrop:OnXPUpdated( _, tag, exp, maxExp, reason )
+    if ( tag ~= 'player' ) then
+        return
+    end
+
+    local xp = zo_min( exp, maxExp )
+
+    if ( self.current_xp == xp ) then
+        return 
+    end
+
+    self.current_xp = xp
+
+    local newDrop, _ = self:AcquireObject()
+
+    table.insert( self.dirty_flags, DirtyFlags.LAYOUT )
+
+    newDrop:SetIcon( 'EsoUI/Art/Icons/icon_missing.dds' )
+    newDrop:SetLabel( '+' .. xp )
+    newDrop:SetTimestamp( GetTimeStamp() )
+end
+
+--- Getter for the control xml element
+-- @treturn table 
 function LootDrop:GetControl()
     return self.control
 end
