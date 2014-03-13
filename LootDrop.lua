@@ -29,6 +29,8 @@ THE SOFTWARE.
 ------------------------------------------------
 local LootDrop          = ZO_ObjectPool:Subclass()
 LootDrop.dirty_flags    = setmetatable( {}, { __mode = 'kv'} )
+LootDrop.config         = nil
+LootDrop.db             = nil
 
 local Config            = LootDropConfig
 local CBM               = CALLBACK_MANAGER
@@ -66,20 +68,26 @@ end
 
 --- I swear I'm going to use this for something
 -- @param ...
-function LootDrop:Initialize( control, db )
-    self.control        = control
-    self.db             = db
-    self.config         = Config:New( self.db )
-
-    self:ToggleCoin()
-    self:ToggleXP()
-    self:ToggleLoot()
-
-    self.control:SetHandler( 'OnUpdate', function() self:OnUpdate() end )
+function LootDrop:Initialize( control )
+    self.control = control
+    self.control:RegisterForEvent( EVENT_ADD_ON_LOADED, function( ... ) self:OnLoaded( ... ) end )
+    self.control:SetHandler( 'OnUpdate',                function() self:OnUpdate() end )
 
     CBM:RegisterCallback( Config.EVENT_TOGGLE_COIN, function() self:ToggleCoin()    end )
     CBM:RegisterCallback( Config.EVENT_TOGGLE_XP,   function() self:ToggleXP()      end )
     CBM:RegisterCallback( Config.EVENT_TOGGLE_LOOT, function() self:ToggleLoot()    end )
+end
+
+function LootDrop:OnLoaded( event, addon )
+    if ( addon ~= 'LootDrop' ) then
+        return
+    end
+    self.db     = ZO_SavedVars:New( 'LOOTDROP_DB', 1.0, nil, defaults )
+    self.config = Config:New( self.db )
+
+    self:ToggleCoin()
+    self:ToggleXP()
+    self:ToggleLoot()
 end
 
 function LootDrop:ToggleCoin() 
@@ -247,13 +255,5 @@ function LootDrop:GetControl()
 end
 
 function LootDrop_Initialized( self )
-    LOOTDROP_DB = LOOTDROP_DB or {}
-
-    for k,v in pairs( defaults ) do
-        if ( type( LOOTDROP_DB[ k ] == 'nil' ) ) then
-            LOOTDROP_DB[ k ] = v
-        end
-    end
-
     LOOT_DROP = LootDrop:New( self, LOOTDROP_DB )
 end
