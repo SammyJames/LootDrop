@@ -31,7 +31,13 @@ THE SOFTWARE.
 LootDroppable           = ZO_Object:Subclass()
 local LibAnimation      = LibStub('LibAnimation-1.0')
 local Config            = LootDropConfig
-local Font              = string.format( '%s|%d|%s', Config.FONT_FACE, Config.FONT_SIZE, Config.FONT_SHADOW )
+local Font              = nil
+
+if ( Config.FONT_SHADOW ~= '' ) then
+    Font = string.format( '%s|%d|%s', Config.FONT_FACE, Config.FONT_SIZE, Config.FONT_SHADOW )
+else
+    Font = string.format( '%s|%d', Config.FONT_FACE, Config.FONT_SIZE )
+end
 
 --- Create a new instance of a LootDroppable
 -- @treturn LootDroppable
