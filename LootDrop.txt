@@ -1,7 +1,10 @@
 ## Title: LootDrop - By Pawkette
 ## APIVersion: 100000
 
-LibTranslateAnimation.lua
+Libs\LibStub\LibStub.lua
+Libs\LibAnimation-1.0\LibAnimation.lua
+
+Config.lua
 LootDroppable.lua
 LootDrop.lua
 LootDrop.xml

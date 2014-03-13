@@ -28,7 +28,10 @@ THE SOFTWARE.
 ]]
 ------------------------------------------------
 
-LootDroppable = ZO_Object:Subclass()
+LootDroppable           = ZO_Object:Subclass()
+local LibAnimation      = LibStub('LibAnimation-1.0')
+local Config            = LootDropConfig
+local Font              = string.format( '%s|%d|%s', Config.FONT_FACE, Config.FONT_SIZE, Config.FONT_SHADOW )
 
 --- Create a new instance of a LootDroppable
 -- @treturn LootDroppable
@@ -41,20 +44,12 @@ end
 --- Constructor
 --
 function LootDroppable:Initialize( objectPool )
+    self.pool    = objectPool
     self.control = CreateControlFromVirtual( 'LootDroppable', objectPool:GetControl(), 'LootDroppable', objectPool:GetNextControlId() )
-    self.label = self.control:GetNamedChild( '_Name' )
-    self.icon = self.control:GetNamedChild( '_Icon' )
+    self.label   = self.control:GetNamedChild( '_Name' )
+    self.icon    = self.control:GetNamedChild( '_Icon' )
 
-    self.animation = ZO_AlphaAnimation:New( self.control )
-    self.translate = LibTranslateAnimation:New( self.control )
-
-    self:SetAnchor( BOTTOMRIGHT, objectPool:GetControl(), BOTTOMRIGHT, 220, 0 )
-
-    self.control:SetAlpha( 0 )
-    self.label:SetText( '' )
-    self.icon:SetTexture( '' )
-
-    self.timestamp = 0
+    self.label:SetFont( Font )
 end
 
 --- Visibility Getter
@@ -66,15 +61,39 @@ end
 --- Show this droppable
 -- @tparam number y
 function LootDroppable:Show( y )
-    self.animation:FadeIn( 0, 200 )
-    self.translate:TranslateTo( 220, y, 0, y, 200, 0 )
+    self.enter_animation:AlphaTo( 1.0, Config.ENTER_ANIM_DURATION )
+    self.enter_animation:TranslateTo( 0, y, Config.ENTER_ANIM_DURATION )
+    self.enter_animation:Play()
+end
+
+function LootDroppable:Hide()
+     self.exit_animation:AlphaTo( 0.0, Config.EXIT_ANIM_DURATION )
+    local y = self:GetOffsetY()
+    self.exit_animation:TranslateTo( 220, y, Config.EXIT_ANIM_DURATION )
+    self.exit_animation:InsertCallback( function( ... ) self:Reset() end, Config.EXIT_ANIM_DURATION )
+    self.exit_animation:Play()
+end
+
+--- Ready this droppable to show
+function LootDroppable:Prepare()
+    self:SetAnchor( BOTTOMRIGHT, self.pool:GetControl(), BOTTOMRIGHT, 220, ( self.pool:GetActiveObjectCount() - 1 ) * ( Config.SPACING * -1 ) )
+
+    self.enter_animation = LibAnimation:New( self.control )
+    self.exit_animation  = LibAnimation:New( self.control )
+    self.move_animation  = LibAnimation:New( self.control )
+
+    self.control:SetAlpha( 0 )
+    self.label:SetText( '' )
+    self.icon:SetTexture( '' )
+    self.timestamp = 0
 end
 
 --- Reset this droppable
 function LootDroppable:Reset()
-    self.animation:FadeOut( 0, 200 )
-    local y = self:GetOffsetY()
-    self.translate:TranslateTo( 0, y, 220, y, 200, 0 )
+    self.enter_animation = nil
+    self.exit_animation  = nil
+    self.move_animation  = nil
+
     self.label:SetText( '' )
     self.icon:SetHidden( true )
     self.icon:SetTexture( '' )
@@ -118,8 +137,9 @@ function LootDroppable:SetAnchor( ... )
 end
 
 --- Pass translate information to animation
-function LootDroppable:TranslateTo( ... )
-    self.translate:TranslateTo( ... )
+function LootDroppable:Move( x, y )
+    self.move_animation:TranslateTo( x, y, Config.MOVE_ANIM_DURATION, 0 )
+    self.move_animation:Play()
 end
 
 --- Get current y offset

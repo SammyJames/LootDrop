@@ -8,13 +8,13 @@
             <Controls>
                 <Texture name="$(parent)BG" inherits="ZO_ThinListBgStrip" />
                 <Texture name="$(parent)_Icon" mouseEnabled="false" layer="OVERLAY">
-                    <Anchor point="LEFT" offsetX="2" />
-                     <Dimensions x="40" y="40"/>
+                    <Anchor point="LEFT" offsetX="0" />
+                    <Dimensions x="40" y="40"/>
                 </Texture>
 
-                <Label name="$(parent)_Name" font="ZoFontGame" horizontalAlignment="LEFT" wrapMode="ELLIPSIS">
-                    <Dimensions x="158" y="40" />
-                    <Anchor point="TOPLEFT" offsetX="45" offsetY="10" />
+                <Label name="$(parent)_Name" horizontalAlignment="LEFT" verticalAlignment="CENTER" wrapMode="ELLIPSIS">
+                    <Dimensions x="160" y="40" />
+                    <Anchor point="LEFT" relativeTo="$(parent)_Icon" relativePoint="RIGHT" offsetX="2" offsetY="0" />
                 </Label>
             </Controls>
         </Button>

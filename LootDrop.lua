@@ -28,9 +28,9 @@ THE SOFTWARE.
 ]]
 ------------------------------------------------
 local LootDrop          = ZO_ObjectPool:Subclass()
-LootDrop.dirty_flags    = {}
-LootDrop.current_money  = 0
-LootDrop.current_xp     = 0
+LootDrop.dirty_flags    = setmetatable( {}, { __mode = 'kv'} )
+
+local Config            = LootDropConfig
 
 --- Flags for updating UI aspects
 local DirtyFlags =
@@ -50,12 +50,19 @@ end
 -- @param ...
 function LootDrop:Initialize( control )
     self.control        = control
-    self.current_money  = GetCurrentMoney()
-    self.current_xp     = GetUnitXP( 'player' )
+    if ( Config.ENABLE_COIN ) then
+        self.current_money = GetCurrentMoney()
+        self.control:RegisterForEvent( EVENT_MONEY_UPDATE,      function( ... ) self:OnMoneyUpdated( ... )  end )
+    end
 
-    self.control:RegisterForEvent( EVENT_LOOT_RECEIVED,     function( ... ) self:OnItemLooted( ... )    end )
-    self.control:RegisterForEvent( EVENT_MONEY_UPDATE,      function( ... ) self:OnMoneyUpdated( ... )  end )
-    self.control:RegisterForEvent( EVENT_EXPERIENCE_UPDATE, function( ... ) self:OnXPUpdated( ... )     end )
+    if ( Config.ENABLE_XP ) then
+        self.current_xp = GetUnitXP( 'player' )
+        self.control:RegisterForEvent( EVENT_EXPERIENCE_UPDATE, function( ... ) self:OnXPUpdated( ... )     end )
+    end
+
+    if ( Config.ENABLE_LOOT ) then
+        self.control:RegisterForEvent( EVENT_LOOT_RECEIVED,     function( ... ) self:OnItemLooted( ... )    end )
+    end
 
     self.control:SetHandler( 'OnUpdate', function() self:OnUpdate() end )
 end
@@ -96,9 +103,9 @@ function LootDrop:OnUpdate()
             if ( not v:IsVisible() ) then
                 v:Show( last_y )
             else            
-                v:TranslateTo( 0, v:GetOffsetY(), 0, last_y, 200, 0 )
+                v:Move( 0, last_y )
             end
-            last_y = last_y - 45
+            last_y = last_y - Config.SPACING
         end
     end
 
@@ -114,7 +121,14 @@ end
 --- Reset a loot droppable
 -- @tparam LootDroppable droppable 
 function LootDrop:ResetDroppable( droppable )
-    droppable:Reset()
+    droppable:Hide()
+end
+
+function LootDrop:AcquireObject()
+    local result = ZO_ObjectPool.AcquireObject( self )
+    table.insert( self.dirty_flags, DirtyFlags.LAYOUT )
+    result:Prepare()
+    return result
 end
 
 --- Called when you loot an Item
@@ -128,8 +142,6 @@ function LootDrop:OnItemLooted( _, _, itemName, quantity, _, _, mine )
 
     local icon, price, _, _, _ = GetItemLinkInfo( itemName )
     local newDrop, _ = self:AcquireObject()
-
-    table.insert( self.dirty_flags, DirtyFlags.LAYOUT )
 
     newDrop:SetIcon( icon )
     newDrop:SetLabel( zo_strformat( '<<1>> <<2[//x$d]>>', itemName, quantity ) )
@@ -155,9 +167,7 @@ function LootDrop:OnMoneyUpdated( _, money, _ )
 
     local newDrop, _ = self:AcquireObject()
 
-    table.insert( self.dirty_flags, DirtyFlags.LAYOUT )
-
-    newDrop:SetIcon( 'EsoUI/Art/Icons/Item_Generic_CoinBag.dds' )
+    newDrop:SetIcon( Config.COIN_TEXTURE )
     newDrop:SetLabel( difference )
     newDrop:SetTimestamp( GetTimeStamp() )
 end
@@ -173,14 +183,14 @@ function LootDrop:OnXPUpdated( _, tag, exp, maxExp, reason )
         return 
     end
 
+    local gain = xp - self.current_xp
+
     self.current_xp = xp
 
     local newDrop, _ = self:AcquireObject()
 
-    table.insert( self.dirty_flags, DirtyFlags.LAYOUT )
-
-    newDrop:SetIcon( 'EsoUI/Art/Icons/icon_missing.dds' )
-    newDrop:SetLabel( '+' .. xp )
+    newDrop:SetIcon( Config.XP_TEXTURE )
+    newDrop:SetLabel( '+' .. gain )
     newDrop:SetTimestamp( GetTimeStamp() )
 end
 
