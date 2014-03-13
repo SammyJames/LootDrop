@@ -64,11 +64,16 @@ function LootDroppable:Show( y )
 end
 
 function LootDroppable:Hide()
-     self.exit_animation:AlphaTo( 0.0, self.db.exitduration )
-    local y = self:GetOffsetY()
-    self.exit_animation:TranslateTo( self.db.width, y, self.db.exitduration )
-    self.exit_animation:InsertCallback( function( ... ) self:Reset() end, self.db.exitduration )
-    self.exit_animation:Play()
+    if ( self.exit_animation ) then
+        self.exit_animation:AlphaTo( 0.0, self.db.exitduration )
+        local y = self:GetOffsetY()
+        self.exit_animation:TranslateTo( self.db.width, y, self.db.exitduration )
+        self.exit_animation:InsertCallback( function( ... ) self:Reset() end, self.db.exitduration )
+        self.exit_animation:Play()
+    else
+        self.control:SetAlpha( 0.0 )
+        self:Reset()
+    end
 end
 
 --- Ready this droppable to show
