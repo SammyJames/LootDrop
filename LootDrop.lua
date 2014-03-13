@@ -31,6 +31,24 @@ local LootDrop          = ZO_ObjectPool:Subclass()
 LootDrop.dirty_flags    = setmetatable( {}, { __mode = 'kv'} )
 
 local Config            = LootDropConfig
+local CBM               = CALLBACK_MANAGER
+
+local defaults =
+{
+    enterduration   = 200,
+    exitduration    = 200,
+    moveduration    = 200,
+    displayduration = 10,
+    experience      = true,
+    coin            = true,
+    loot            = true,
+    width           = 202,
+    height          = 42,
+    font_face       = [[/esoui/common/fonts/univers55.otf]],
+    font_size       = 16,
+    font_decoration = 'soft-shadow-thin',
+    padding         = 6
+}
 
 --- Flags for updating UI aspects
 local DirtyFlags =
@@ -48,23 +66,46 @@ end
 
 --- I swear I'm going to use this for something
 -- @param ...
-function LootDrop:Initialize( control )
+function LootDrop:Initialize( control, db )
     self.control        = control
-    if ( Config.ENABLE_COIN ) then
-        self.current_money = GetCurrentMoney()
-        self.control:RegisterForEvent( EVENT_MONEY_UPDATE,      function( ... ) self:OnMoneyUpdated( ... )  end )
-    end
+    self.db             = db
+    self.config         = Config:New( self.db )
 
-    if ( Config.ENABLE_XP ) then
-        self.current_xp = GetUnitXP( 'player' )
-        self.control:RegisterForEvent( EVENT_EXPERIENCE_UPDATE, function( ... ) self:OnXPUpdated( ... )     end )
-    end
-
-    if ( Config.ENABLE_LOOT ) then
-        self.control:RegisterForEvent( EVENT_LOOT_RECEIVED,     function( ... ) self:OnItemLooted( ... )    end )
-    end
+    self:ToggleCoin()
+    self:ToggleXP()
+    self:ToggleLoot()
 
     self.control:SetHandler( 'OnUpdate', function() self:OnUpdate() end )
+
+    CBM:RegisterCallback( Config.EVENT_TOGGLE_COIN, function() self:ToggleCoin()    end )
+    CBM:RegisterCallback( Config.EVENT_TOGGLE_XP,   function() self:ToggleXP()      end )
+    CBM:RegisterCallback( Config.EVENT_TOGGLE_LOOT, function() self:ToggleLoot()    end )
+end
+
+function LootDrop:ToggleCoin() 
+    if ( self.db.coin ) then
+        self.current_money = GetCurrentMoney()
+        self.control:RegisterForEvent( EVENT_MONEY_UPDATE, function( ... ) self:OnMoneyUpdated( ... )  end )
+    else
+        self.control:UnregisterForEvent( EVENT_MONEY_UPDATE )
+    end
+end
+
+function LootDrop:ToggleXP()
+    if ( self.db.experience ) then
+        self.current_xp = GetUnitXP( 'player' )
+        self.control:RegisterForEvent( EVENT_EXPERIENCE_UPDATE, function( ... ) self:OnXPUpdated( ... )     end )
+    else
+        self.control:UnregisterForEvent( EVENT_EXPERIENCE_UPDATE )
+    end
+end
+
+function LootDrop:ToggleLoot()
+    if ( self.db.loot ) then
+        self.control:RegisterForEvent( EVENT_LOOT_RECEIVED, function( ... ) self:OnItemLooted( ... )    end )
+    else
+        self.control:UnregisterForEvent( EVENT_LOOT_RECEIVED )
+    end
 end
 
 --- Check if any flags are set
@@ -91,7 +132,7 @@ function LootDrop:OnUpdate()
 
     local currentTime = GetTimeStamp()
     for k,v in pairs( self:GetActiveObjects() ) do
-        if ( GetDiffBetweenTimeStamps(currentTime, v:GetTimestamp() ) > 10 ) then
+        if ( GetDiffBetweenTimeStamps(currentTime, v:GetTimestamp() ) > self.db.displayduration ) then
             self:ReleaseObject( k )
             table.insert( self.dirty_flags, DirtyFlags.LAYOUT )
         end
@@ -105,7 +146,7 @@ function LootDrop:OnUpdate()
             else            
                 v:Move( 0, last_y )
             end
-            last_y = last_y - Config.SPACING
+            last_y = last_y - ( self.db.height + self.db.padding )
         end
     end
 
@@ -141,6 +182,11 @@ function LootDrop:OnItemLooted( _, _, itemName, quantity, _, _, mine )
     end
 
     local icon, price, _, _, _ = GetItemLinkInfo( itemName )
+
+    if ( not icon or icon == '' ) then
+        icon = [[/esoui/art/icons/icon_missing.dds]]
+    end
+
     local newDrop, _ = self:AcquireObject()
 
     newDrop:SetIcon( icon )
@@ -167,7 +213,7 @@ function LootDrop:OnMoneyUpdated( _, money, _ )
 
     local newDrop, _ = self:AcquireObject()
 
-    newDrop:SetIcon( Config.COIN_TEXTURE )
+    newDrop:SetIcon( [[/esoui/art/icons/item_generic_coinbag.dds]] )
     newDrop:SetLabel( difference )
     newDrop:SetTimestamp( GetTimeStamp() )
 end
@@ -189,7 +235,7 @@ function LootDrop:OnXPUpdated( _, tag, exp, maxExp, reason )
 
     local newDrop, _ = self:AcquireObject()
 
-    newDrop:SetIcon( Config.XP_TEXTURE )
+    newDrop:SetIcon( [[/lootdrop/textures/arrow_up.dds]] )
     newDrop:SetLabel( '+' .. gain )
     newDrop:SetTimestamp( GetTimeStamp() )
 end
@@ -201,5 +247,13 @@ function LootDrop:GetControl()
 end
 
 function LootDrop_Initialized( self )
-    LOOT_DROP = LootDrop:New( self )
+    LOOTDROP_DB = LOOTDROP_DB or {}
+
+    for k,v in pairs( defaults ) do
+        if ( type( LOOTDROP_DB[ k ] == 'nil' ) ) then
+            LOOTDROP_DB[ k ] = v
+        end
+    end
+
+    LOOT_DROP = LootDrop:New( self, LOOTDROP_DB )
 end

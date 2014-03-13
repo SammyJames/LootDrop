@@ -30,14 +30,6 @@ THE SOFTWARE.
 
 LootDroppable           = ZO_Object:Subclass()
 local LibAnimation      = LibStub('LibAnimation-1.0')
-local Config            = LootDropConfig
-local Font              = nil
-
-if ( Config.FONT_SHADOW ~= '' ) then
-    Font = string.format( '%s|%d|%s', Config.FONT_FACE, Config.FONT_SIZE, Config.FONT_SHADOW )
-else
-    Font = string.format( '%s|%d', Config.FONT_FACE, Config.FONT_SIZE )
-end
 
 --- Create a new instance of a LootDroppable
 -- @treturn LootDroppable
@@ -51,11 +43,10 @@ end
 --
 function LootDroppable:Initialize( objectPool )
     self.pool    = objectPool
+    self.db      = objectPool.db
     self.control = CreateControlFromVirtual( 'LootDroppable', objectPool:GetControl(), 'LootDroppable', objectPool:GetNextControlId() )
     self.label   = self.control:GetNamedChild( '_Name' )
     self.icon    = self.control:GetNamedChild( '_Icon' )
-
-    self.label:SetFont( Font )
 end
 
 --- Visibility Getter
@@ -67,22 +58,27 @@ end
 --- Show this droppable
 -- @tparam number y
 function LootDroppable:Show( y )
-    self.enter_animation:AlphaTo( 1.0, Config.ENTER_ANIM_DURATION )
-    self.enter_animation:TranslateTo( 0, y, Config.ENTER_ANIM_DURATION )
+    self.enter_animation:AlphaTo( 1.0, self.db.enterduration )
+    self.enter_animation:TranslateTo( 0, y, self.db.enterduration )
     self.enter_animation:Play()
 end
 
 function LootDroppable:Hide()
-     self.exit_animation:AlphaTo( 0.0, Config.EXIT_ANIM_DURATION )
+     self.exit_animation:AlphaTo( 0.0, self.db.exitduration )
     local y = self:GetOffsetY()
-    self.exit_animation:TranslateTo( 220, y, Config.EXIT_ANIM_DURATION )
-    self.exit_animation:InsertCallback( function( ... ) self:Reset() end, Config.EXIT_ANIM_DURATION )
+    self.exit_animation:TranslateTo( self.db.width, y, self.db.exitduration )
+    self.exit_animation:InsertCallback( function( ... ) self:Reset() end, self.db.exitduration )
     self.exit_animation:Play()
 end
 
 --- Ready this droppable to show
 function LootDroppable:Prepare()
-    self:SetAnchor( BOTTOMRIGHT, self.pool:GetControl(), BOTTOMRIGHT, 220, ( self.pool:GetActiveObjectCount() - 1 ) * ( Config.SPACING * -1 ) )
+    self:SetAnchor( BOTTOMRIGHT, self.pool:GetControl(), BOTTOMRIGHT, self.db.width, ( self.pool:GetActiveObjectCount() - 1 ) * ( ( self.db.height + self.db.padding ) * -1 ) )
+
+    self.label:SetFont( string.format( '%s|%d|%s', self.db.font_face, self.db.font_size, self.db.font_decoration ) )
+    self.control:SetWidth( self.db.width )
+    self.control:SetHeight( self.db.height )
+    self.icon:SetWidth( self.db.height )
 
     self.enter_animation = LibAnimation:New( self.control )
     self.exit_animation  = LibAnimation:New( self.control )
@@ -144,7 +140,7 @@ end
 
 --- Pass translate information to animation
 function LootDroppable:Move( x, y )
-    self.move_animation:TranslateTo( x, y, Config.MOVE_ANIM_DURATION, 0 )
+    self.move_animation:TranslateTo( x, y, self.db.moveduration, 0 )
     self.move_animation:Play()
 end
 

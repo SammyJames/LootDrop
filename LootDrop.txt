@@ -1,10 +1,13 @@
 ## Title: LootDrop - By Pawkette
 ## APIVersion: 100000
+## OptionalDependsOn: LibAddonMenu-1.0, LibAnimation-1.0, LibStub
+## SavedVariables: LOOTDROP_DB
 
 Libs\LibStub\LibStub.lua
 Libs\LibAnimation-1.0\LibAnimation.lua
+Libs\LibAddonMenu-1.0\LibAddonMenu-1.0.lua
 
-Config.lua
+LootDropConfig.lua
 LootDroppable.lua
 LootDrop.lua
 LootDrop.xml

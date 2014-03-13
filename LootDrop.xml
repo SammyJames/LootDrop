@@ -2,27 +2,27 @@
     <Controls>
         <Button name="LootDroppable" inherits="ZO_InventorySlotBehavior" virtual="true">
             <Dimensions x="202" y="44" />
-            <MouseButton button="2" enabled="true"/>
             <Anchor point="BOTTOMRIGHT" offsetX="0" offsetY="0"/>
 
             <Controls>
                 <Texture name="$(parent)BG" inherits="ZO_ThinListBgStrip" />
-                <Texture name="$(parent)_Icon" mouseEnabled="false" layer="OVERLAY">
-                    <Anchor point="LEFT" offsetX="0" />
-                    <Dimensions x="40" y="40"/>
+
+                <Texture name="$(parent)_Icon" layer="OVERLAY">
+                    <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" />
+                    <Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" />
                 </Texture>
 
                 <Label name="$(parent)_Name" horizontalAlignment="LEFT" verticalAlignment="CENTER" wrapMode="ELLIPSIS">
-                    <Dimensions x="160" y="40" />
-                    <Anchor point="LEFT" relativeTo="$(parent)_Icon" relativePoint="RIGHT" offsetX="2" offsetY="0" />
+                    <Anchor point="TOPLEFT" relativeTo="$(parent)_Icon" relativePoint="TOPRIGHT" offsetX="2" offsetY="2" />
+                    <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="-2" offsetY="-2" /> 
                 </Label>
             </Controls>
         </Button>
 
         <TopLevelControl name="LootDrop" mouseEnabled="false" clampedToScreen="true" movable="false">
             <OnInitialized>LootDrop_Initialized( self )</OnInitialized>
-            <Dimensions x="202" y="300" />
             <Anchor point="BOTTOMRIGHT" offsetX="-4" offsetY="-4"/>
+            <Dimensions x="300" y="500" />
         </TopLevelControl>
     </Controls>
 </GuiXml>
