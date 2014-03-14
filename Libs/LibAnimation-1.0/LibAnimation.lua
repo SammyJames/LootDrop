@@ -28,8 +28,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]
 ----------------------------------------------------
-local kName, kVersion = 'LibAnimation-1.0', 1.0
+if ( not LibStub ) then return end
+
+local kName, kVersion = 'LibAnimation-1.0', 1.1
 local LibAnimation = LibStub:NewLibrary( kName, kVersion )
+if ( not LibAnimation ) then return end
 
 local AnimationMgr = ANIMATION_MANAGER
 local defaultEase = ZO_LinearEase
