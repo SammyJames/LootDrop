@@ -29,7 +29,6 @@ THE SOFTWARE.
 ------------------------------------------------
 
 LootDroppable           = ZO_Object:Subclass()
-local LibAnimation      = LibStub('LibAnimation-1.0')
 
 --- Create a new instance of a LootDroppable
 -- @treturn LootDroppable
@@ -44,7 +43,7 @@ end
 function LootDroppable:Initialize( objectPool )
     self.pool    = objectPool
     self.db      = objectPool.db
-    self.control = CreateControlFromVirtual( 'LootDroppable', objectPool:GetControl(), 'LootDroppable', objectPool:GetNextControlId() )
+    self.control = CreateControlFromVirtual( 'LootDroppable', objectPool:GetControl(), 'LootDroppable', objectPool:GetNextId() )
     self.label   = self.control:GetNamedChild( '_Name' )
     self.icon    = self.control:GetNamedChild( '_Icon' )
 end
@@ -58,17 +57,15 @@ end
 --- Show this droppable
 -- @tparam number y
 function LootDroppable:Show( y )
-    self.enter_animation:AlphaTo( 1.0, self.db.enterduration )
-    self.enter_animation:TranslateTo( 0, y, self.db.enterduration )
     self.enter_animation:Play()
+    local current_x, current_y = self:GetOffsets()
+    self.move_animation = self.pool._slide:Apply( self.control, current_x, current_y, 0, y )
+    self.move_animation:Play()
 end
 
 function LootDroppable:Hide()
     if ( self.exit_animation ) then
-        self.exit_animation:AlphaTo( 0.0, self.db.exitduration )
-        local y = self:GetOffsetY()
-        self.exit_animation:TranslateTo( self.db.width, y, self.db.exitduration )
-        self.exit_animation:InsertCallback( function( ... ) self:Reset() end, self.db.exitduration )
+        self.exit_animation:InsertCallback( function( ... ) self:Reset() end, 200 )
         self.exit_animation:Play()
     else
         self.control:SetAlpha( 0.0 )
@@ -78,16 +75,15 @@ end
 
 --- Ready this droppable to show
 function LootDroppable:Prepare()
-    self:SetAnchor( BOTTOMRIGHT, self.pool:GetControl(), BOTTOMRIGHT, self.db.width, ( self.pool:GetActiveObjectCount() - 1 ) * ( ( self.db.height + self.db.padding ) * -1 ) )
+    self:SetAnchor( BOTTOMRIGHT, self.pool:GetControl(), BOTTOMRIGHT, self.db.width, ( #self.pool._active - 1 ) * ( ( self.db.height + self.db.padding ) * -1 ) )
 
-    self.label:SetFont( string.format( '%s|%d|%s', self.db.font_face, self.db.font_size, self.db.font_decoration ) )
     self.control:SetWidth( self.db.width )
     self.control:SetHeight( self.db.height )
     self.icon:SetWidth( self.db.height )
 
-    self.enter_animation = LibAnimation:New( self.control )
-    self.exit_animation  = LibAnimation:New( self.control )
-    self.move_animation  = LibAnimation:New( self.control )
+    self.enter_animation = self.pool._fadeIn:Apply( self.control )
+    self.exit_animation  = self.pool._fadeOut:Apply( self.control )
+    self.move_animation  = nil
 
     self.control:SetAlpha( 0 )
     self.label:SetText( '' )
@@ -131,6 +127,10 @@ function LootDroppable:SetLabel( label )
     self.label:SetText( label )
 end
 
+function LootDroppable:GetLabel()
+    return self.label:GetText()
+end
+
 --- Set Icon
 -- @tparam string icon
 function LootDroppable:SetIcon( icon )
@@ -145,13 +145,14 @@ end
 
 --- Pass translate information to animation
 function LootDroppable:Move( x, y )
-    self.move_animation:TranslateTo( x, y, self.db.moveduration, 0 )
+    local current_x, current_y = self:GetOffsets()
+    self.move_animation = self.pool._slide:Apply( self.control, current_x, current_y, x, y )
     self.move_animation:Play()
 end
 
 --- Get current y offset
 -- @treturn number
-function LootDroppable:GetOffsetY()
-    local _, _, _, _, _, offsY = self.control:GetAnchor( 0 )
-    return offsY
+function LootDroppable:GetOffsets()
+    local _, _, _, _, offsX, offsY = self.control:GetAnchor( 0 )
+    return offsX, offsY
 end

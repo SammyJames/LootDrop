@@ -3,11 +3,19 @@
 ## OptionalDependsOn: LibAddonMenu-1.0, LibAnimation-1.0, LibStub
 ## SavedVariables: LOOTDROP_DB
 
-Libs\LibStub\LibStub.lua
-Libs\LibAnimation-1.0\LibAnimation.lua
-Libs\LibAddonMenu-1.0\LibAddonMenu-1.0.lua
+## Libraries:
+Libs/LibStub/LibStub.lua
+Libs/LibAnimation-1.0/LibAnimation.lua
+Libs/LibAddonMenu-1.0/LibAddonMenu-1.0.lua
 
+## Animation
+Animation/LootDropAnimPool.lua
+Animation/LootDropFade.lua
+Animation/LootDropSlide.lua
+
+## Core
 LootDropConfig.lua
 LootDroppable.lua
+LootDropPool.lua
 LootDrop.lua
 LootDrop.xml

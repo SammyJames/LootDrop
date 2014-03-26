@@ -27,28 +27,28 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]
 ------------------------------------------------
-local LootDrop          = ZO_ObjectPool:Subclass()
+local LootDropPool      = LootDropPool
+local LootDrop          = LootDropPool:Subclass()
 LootDrop.dirty_flags    = setmetatable( {}, { __mode = 'kv'} )
 LootDrop.config         = nil
 LootDrop.db             = nil
 
+local tinsert           = table.insert
+
 local Config            = LootDropConfig
+local LootDroppable     = LootDroppable
 local CBM               = CALLBACK_MANAGER
+
+local _
 
 local defaults =
 {
-    enterduration   = 200,
-    exitduration    = 200,
-    moveduration    = 200,
     displayduration = 10,
     experience      = true,
     coin            = true,
     loot            = true,
     width           = 202,
     height          = 42,
-    font_face       = [[/esoui/common/fonts/univers55.otf]],
-    font_size       = 16,
-    font_decoration = 'soft-shadow-thin',
     padding         = 6
 }
 
@@ -61,7 +61,7 @@ local DirtyFlags =
 --- Create our ObjectPool
 -- @param ...
 function LootDrop:New( ... )
-    local result = ZO_ObjectPool.New( self, LootDrop.CreateDroppable, function( ... ) self:ResetDroppable( ... ) end )
+    local result = LootDropPool.New( self )
     result:Initialize( ... )
     return result
 end
@@ -69,9 +69,18 @@ end
 --- I swear I'm going to use this for something
 -- @param ...
 function LootDrop:Initialize( control )
+    LootDropPool.Initialize( self, function() return self:CreateDroppable() end, function( ... ) self:ResetDroppable( ... ) end  )
+
     self.control = control
     self.control:RegisterForEvent( EVENT_ADD_ON_LOADED, function( ... ) self:OnLoaded( ... ) end )
-    self.control:SetHandler( 'OnUpdate',                function() self:OnUpdate() end )
+    self.control:SetHandler( 'OnUpdate',                function( _, ft ) self:OnUpdate( ft ) end )
+
+    self._fadeIn  = LootDropFade:New( 0.0, 1.0, 200 )
+    self._fadeOut = LootDropFade:New( 1.0, 0.0, 200 )
+    self._slide   = LootDropSlide:New( 200 )
+
+    self._coinId = nil
+    self._xpId   = nil
 
     CBM:RegisterCallback( Config.EVENT_TOGGLE_COIN, function() self:ToggleCoin()    end )
     CBM:RegisterCallback( Config.EVENT_TOGGLE_XP,   function() self:ToggleXP()      end )
@@ -82,7 +91,7 @@ function LootDrop:OnLoaded( event, addon )
     if ( addon ~= 'LootDrop' ) then
         return
     end
-    self.db     = ZO_SavedVars:New( 'LOOTDROP_DB', 1.0, nil, defaults )
+    self.db     = ZO_SavedVars:NewAccountWide( 'LOOTDROP_DB', 2.0, nil, defaults )
     self.config = Config:New( self.db )
 
     self:ToggleCoin()
@@ -133,27 +142,37 @@ function LootDrop:IsDirty( flag )
 end
 
 --- On every consecutive frame
-function LootDrop:OnUpdate() 
-    if ( not self:GetActiveObjectCount() ) then
+function LootDrop:OnUpdate( frameTime ) 
+    if ( not #self._active ) then
         return
     end
 
-    local currentTime = GetTimeStamp()
-    for k,v in pairs( self:GetActiveObjects() ) do
-        if ( GetDiffBetweenTimeStamps(currentTime, v:GetTimestamp() ) > self.db.displayduration ) then
-            self:ReleaseObject( k )
-            table.insert( self.dirty_flags, DirtyFlags.LAYOUT )
+    local i = 1
+    local entry = nil
+    while( i <= #self._active ) do
+        entry = self._active[ i ]
+
+        if ( frameTime - entry:GetTimestamp() > self.db.displayduration ) then
+            self:Release( entry )
+            tinsert( self.dirty_flags, DirtyFlags.LAYOUT )
+        else
+            i = i + 1
         end
     end
 
     if ( self:IsDirty( DirtyFlags.LAYOUT ) ) then
         local last_y = 0
-        for _,v in pairs( self:GetActiveObjects() ) do
-            if ( not v:IsVisible() ) then
-                v:Show( last_y )
+        local entry = nil
+
+        for i=1,#self._active do
+            entry = self._active[ i ]
+
+            if ( not entry:IsVisible() ) then
+                entry:Show( last_y )
             else            
-                v:Move( 0, last_y )
+                entry:Move( 0, last_y )
             end
+
             last_y = last_y - ( self.db.height + self.db.padding )
         end
     end
@@ -169,15 +188,23 @@ end
 
 --- Reset a loot droppable
 -- @tparam LootDroppable droppable 
-function LootDrop:ResetDroppable( droppable )
+function LootDrop:ResetDroppable( droppable, key )
+    if ( key == self._coinId ) then
+        self._coinId = nil
+    elseif( key == self._xpId ) then
+        self._xpId = nil
+    end
+
     droppable:Hide()
 end
 
-function LootDrop:AcquireObject()
-    local result = ZO_ObjectPool.AcquireObject( self )
-    table.insert( self.dirty_flags, DirtyFlags.LAYOUT )
+function LootDrop:Acquire()
+    local result, key = LootDropPool.Acquire( self )
     result:Prepare()
-    return result
+
+    tinsert( self.dirty_flags, DirtyFlags.LAYOUT )
+
+    return result, key
 end
 
 --- Called when you loot an Item
@@ -189,17 +216,20 @@ function LootDrop:OnItemLooted( _, _, itemName, quantity, _, _, mine )
         return
     end
 
-    local icon, price, _, _, _ = GetItemLinkInfo( itemName )
-
+    local icon, _, _, _, _ = GetItemLinkInfo( itemName )
+    local itemClean = itemName:match( 'h(.*)[%^h]' )
+    local original  = itemClean
+    itemClean = itemClean:gsub( '(%a)([%w\']+)', function( char, rest ) return char:upper() .. rest:lower() end )
+    itemName = itemName:gsub( original, itemClean, 1 )
     if ( not icon or icon == '' ) then
         icon = [[/esoui/art/icons/icon_missing.dds]]
     end
 
-    local newDrop, _ = self:AcquireObject()
+    local newDrop, _ = self:Acquire()
 
     newDrop:SetIcon( icon )
     newDrop:SetLabel( zo_strformat( '<<1>> <<2[//x$d]>>', itemName, quantity ) )
-    newDrop:SetTimestamp( GetTimeStamp() )
+    newDrop:SetTimestamp( GetFrameTimeSeconds() )
 end 
 
 --- Called when the amount of money you have changes
@@ -210,20 +240,21 @@ function LootDrop:OnMoneyUpdated( _, money, _ )
     end
 
     local difference = money - self.current_money
-
-    if ( difference > 0 ) then
-        difference = '+' .. tostring( difference )
-    else
-        difference = tostring( difference )
-    end
-
     self.current_money = money
 
-    local newDrop, _ = self:AcquireObject()
+    local newDrop = nil
+    if ( self._coinId ) then
+        newDrop = self:Get( self._coinId )
+        difference = difference + tonumber( newDrop:GetLabel() )
+    end
+
+    if ( not newDrop ) then
+        newDrop, self._coinId = self:Acquire()
+    end
 
     newDrop:SetIcon( [[/esoui/art/icons/item_generic_coinbag.dds]] )
     newDrop:SetLabel( difference )
-    newDrop:SetTimestamp( GetTimeStamp() )
+    newDrop:SetTimestamp( GetFrameTimeSeconds() )
 end
 
 function LootDrop:OnXPUpdated( _, tag, exp, maxExp, reason )
@@ -238,14 +269,21 @@ function LootDrop:OnXPUpdated( _, tag, exp, maxExp, reason )
     end
 
     local gain = xp - self.current_xp
-
     self.current_xp = xp
 
-    local newDrop, _ = self:AcquireObject()
+    local newDrop = nil
+    if ( self._xpId ) then
+            newDrop = self:Get( self._xpId )
+        gain = gain + tonumber( newDrop:GetLabel() )
+    end
+
+    if ( not newDrop ) then
+        newDrop, self._xpId = self:Acquire()
+    end
 
     newDrop:SetIcon( [[/lootdrop/textures/arrow_up.dds]] )
-    newDrop:SetLabel( '+' .. gain )
-    newDrop:SetTimestamp( GetTimeStamp() )
+    newDrop:SetLabel( gain )
+    newDrop:SetTimestamp( GetFrameTimeSeconds() )
 end
 
 --- Getter for the control xml element

@@ -12,7 +12,7 @@
                     <Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" />
                 </Texture>
 
-                <Label name="$(parent)_Name" horizontalAlignment="LEFT" verticalAlignment="CENTER" wrapMode="ELLIPSIS">
+                <Label name="$(parent)_Name" horizontalAlignment="LEFT" font="ZoFontGame" verticalAlignment="CENTER" wrapMode="ELLIPSIS">
                     <Anchor point="TOPLEFT" relativeTo="$(parent)_Icon" relativePoint="TOPRIGHT" offsetX="2" offsetY="2" />
                     <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="-2" offsetY="-2" /> 
                 </Label>

@@ -35,14 +35,6 @@ function LootDropConfig:Initialize( db )
         function() return self.db.height end, function( height ) self.db.height = height end )
     LAM:AddSlider( self.config_panel, '_padding', 'Padding', 'Padding between entries.', 0, 20, 1, 
         function() return self.db.padding end, function( padding ) self.db.padding = padding end )
-
-    LAM:AddHeader( self.config_panel, '_animations', 'Animation' )
-    LAM:AddSlider( self.config_panel, '_enterduration', 'Enter Duration', 'How long should the enter animation take.', 1, 400, 1,
-        function() return self.db.enterduration end, function( duration ) self.db.enterduration = duration end )
-    LAM:AddSlider( self.config_panel, '_exitduration', 'Exit Duration', 'How long should the exit animation take.', 1, 400, 1,
-        function() return self.db.exitduration end, function( duration ) self.db.exitduration = duration end )
-    LAM:AddSlider( self.config_panel, '_moveduration', 'Move Duration', 'How long should the move animation take.', 1, 400, 1,
-        function() return self.db.moveduration end, function( duration ) self.db.moveduration = duration end )
 end
 
 function LootDropConfig:ToggleXP()
