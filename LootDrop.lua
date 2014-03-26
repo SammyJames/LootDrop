@@ -245,7 +245,10 @@ function LootDrop:OnMoneyUpdated( _, money, _ )
     local newDrop = nil
     if ( self._coinId ) then
         newDrop = self:Get( self._coinId )
-        difference = difference + tonumber( newDrop:GetLabel() )
+
+        if ( newDrop ) then
+            difference = difference + tonumber( newDrop:GetLabel() )
+        end
     end
 
     if ( not newDrop ) then
@@ -273,8 +276,11 @@ function LootDrop:OnXPUpdated( _, tag, exp, maxExp, reason )
 
     local newDrop = nil
     if ( self._xpId ) then
-            newDrop = self:Get( self._xpId )
-        gain = gain + tonumber( newDrop:GetLabel() )
+        newDrop = self:Get( self._xpId )
+
+        if ( newDrop ) then
+            gain = gain + tonumber( newDrop:GetLabel() )
+        end
     end
 
     if ( not newDrop ) then
