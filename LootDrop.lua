@@ -1,7 +1,6 @@
 ------------------------------------------------
 -- Loot Drop - show me what I got
 --
--- @classmod LootDrop
 -- @author Pawkette ( pawkette.heals@gmail.com )
 --[[
 The MIT License (MIT)
