@@ -1,5 +1,5 @@
 ## Title: LootDrop - By Pawkette
-## APIVersion: 100000
+## APIVersion: 100003
 ## OptionalDependsOn: LibAddonMenu-1.0, LibAnimation-1.0, LibStub
 ## SavedVariables: LOOTDROP_DB
 
