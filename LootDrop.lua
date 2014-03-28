@@ -276,6 +276,10 @@ function LootDrop:OnXPUpdated( _, tag, exp, maxExp, reason )
     local gain = xp - self.current_xp
     self.current_xp = xp
 
+    if ( gain <= 0 ) then
+        return
+    end
+
     local newDrop = nil
     if ( self._xpId ) then
         newDrop = self:Get( self._xpId )
