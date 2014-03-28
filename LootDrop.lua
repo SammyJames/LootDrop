@@ -217,9 +217,12 @@ function LootDrop:OnItemLooted( _, _, itemName, quantity, _, _, mine )
 
     local icon, _, _, _, _ = GetItemLinkInfo( itemName )
     local itemClean = itemName:match( 'h(.*)[%^h]' )
-    local original  = itemClean
-    itemClean = itemClean:gsub( '(%a)([%w\']+)', function( char, rest ) return char:upper() .. rest:lower() end )
-    itemName = itemName:gsub( original, itemClean, 1 )
+    if ( itemClean ) then
+        local original  = itemClean
+        itemClean = itemClean:gsub( '(%a)([%w\']+)', function( char, rest ) return char:upper() .. rest:lower() end )
+        itemName = itemName:gsub( original, itemClean, 1 )
+    end
+
     if ( not icon or icon == '' ) then
         icon = [[/esoui/art/icons/icon_missing.dds]]
     end
