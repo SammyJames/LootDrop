@@ -229,9 +229,9 @@ function LootDrop:OnItemLooted( _, _, itemName, quantity, _, _, mine )
 
     local newDrop, _ = self:Acquire()
 
+    newDrop:SetTimestamp( GetFrameTimeSeconds() )
     newDrop:SetIcon( icon )
     newDrop:SetLabel( zo_strformat( '<<1>> <<2[//x$d]>>', itemName, quantity ) )
-    newDrop:SetTimestamp( GetFrameTimeSeconds() )
 end 
 
 --- Called when the amount of money you have changes
@@ -249,7 +249,7 @@ function LootDrop:OnMoneyUpdated( _, money, _ )
         newDrop = self:Get( self._coinId )
 
         if ( newDrop ) then
-            difference = difference + tonumber( newDrop:GetLabel() ) or 0
+            difference = difference + ( newDrop:GetLabel() or 0 )
         end
     end
 
@@ -257,9 +257,9 @@ function LootDrop:OnMoneyUpdated( _, money, _ )
         newDrop, self._coinId = self:Acquire()
     end
 
+    newDrop:SetTimestamp( GetFrameTimeSeconds() )
     newDrop:SetIcon( [[/esoui/art/icons/item_generic_coinbag.dds]] )
     newDrop:SetLabel( difference )
-    newDrop:SetTimestamp( GetFrameTimeSeconds() )
 end
 
 function LootDrop:OnXPUpdated( _, tag, exp, maxExp, reason )
@@ -285,7 +285,7 @@ function LootDrop:OnXPUpdated( _, tag, exp, maxExp, reason )
         newDrop = self:Get( self._xpId )
 
         if ( newDrop ) then
-            gain = gain + tonumber( newDrop:GetLabel() ) or 0
+            gain = gain + ( newDrop:GetLabel() or 0 )
         end
     end
 
@@ -293,9 +293,9 @@ function LootDrop:OnXPUpdated( _, tag, exp, maxExp, reason )
         newDrop, self._xpId = self:Acquire()
     end
 
+    newDrop:SetTimestamp( GetFrameTimeSeconds() )
     newDrop:SetIcon( [[/lootdrop/textures/arrow_up.dds]] )
     newDrop:SetLabel( gain )
-    newDrop:SetTimestamp( GetFrameTimeSeconds() )
 end
 
 --- Getter for the control xml element
