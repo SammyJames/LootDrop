@@ -128,7 +128,7 @@ function LootDroppable:SetLabel( label )
 end
 
 function LootDroppable:GetLabel()
-    return self.label:GetText()
+    return tostring( self.label:GetText() )
 end
 
 --- Set Icon

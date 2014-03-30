@@ -249,7 +249,7 @@ function LootDrop:OnMoneyUpdated( _, money, _ )
         newDrop = self:Get( self._coinId )
 
         if ( newDrop ) then
-            difference = difference + tonumber( newDrop:GetLabel() or 0 )
+            difference = difference + tonumber( newDrop:GetLabel() ) or 0
         end
     end
 
@@ -285,7 +285,7 @@ function LootDrop:OnXPUpdated( _, tag, exp, maxExp, reason )
         newDrop = self:Get( self._xpId )
 
         if ( newDrop ) then
-            gain = gain + tonumber( newDrop:GetLabel() or 0 )
+            gain = gain + tonumber( newDrop:GetLabel() ) or 0
         end
     end
 
