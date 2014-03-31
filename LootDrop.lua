@@ -206,6 +206,29 @@ function LootDrop:Acquire()
     return result, key
 end
 
+function LootDrop:StringParts( str )
+    local result = {}
+
+    local entry, char = '', nil
+    for i=1,str:utf8len() do
+        char = str:utf8sub( i, i )
+        if ( char == ' ' ) then
+            tinsert( result, entry .. ' ' )
+            entry = ''
+        else
+            if ( entry == '' ) then
+                entry = entry .. char:utf8upper() 
+            else
+                entry = entry .. char 
+            end
+        end
+    end
+
+    tinsert( result, entry )
+
+    return result
+end
+
 --- Called when you loot an Item
 -- @tparam string itemName
 -- @tparam number quantity 
@@ -218,9 +241,21 @@ function LootDrop:OnItemLooted( _, _, itemName, quantity, _, _, mine )
     local icon, _, _, _, _ = GetItemLinkInfo( itemName )
     local itemClean = itemName:match( 'h(.*)[%^h]' )
     if ( itemClean ) then
-        local original  = itemClean
-        itemClean = itemClean:gsub( '(%a)([%w\']+)', function( char, rest ) return char:upper() .. rest:lower() end )
-        itemName = itemName:gsub( original, itemClean, 1 )
+        local original = itemClean
+        local parts = self:StringParts( itemClean )
+
+        local newString, part, char = '', nil, nil
+        for i=1,#parts do
+            part = parts[ i ]
+            if ( part:utf8len() > 2 ) then
+                char = part:utf8sub( 1, 1 )
+                char:utf8upper()
+            end 
+
+            newString = newString .. parts[ i ]
+        end
+
+        itemName = itemName:gsub( original, newString, 1 )
     end
 
     if ( not icon or icon == '' ) then
@@ -306,4 +341,5 @@ end
 
 function LootDrop_Initialized( self )
     LOOT_DROP = LootDrop:New( self, LOOTDROP_DB )
+    SLASH_COMMANDS['/lootdrop'] = function() LOOT_DROP:OnItemLooted( nil, nil, 'hàbcdéêèf àbcdéêèf^', 1, nil, nil, true ) end
 end

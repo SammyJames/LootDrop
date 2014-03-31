@@ -7,6 +7,8 @@
 Libs/LibStub/LibStub.lua
 Libs/LibAnimation-1.0/LibAnimation.lua
 Libs/LibAddonMenu-1.0/LibAddonMenu-1.0.lua
+Libs/UTF8/utf8data.lua
+Libs/UTF8/utf8.lua
 
 ## Animation
 Animation/LootDropAnimPool.lua
