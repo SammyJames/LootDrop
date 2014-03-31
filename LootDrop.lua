@@ -206,25 +206,20 @@ function LootDrop:Acquire()
     return result, key
 end
 
-function LootDrop:StringParts( str )
-    local result = {}
+function LootDrop:FormatItemName( str )
+    local result = ''
 
     local entry, char = '', nil
+    local needsUpper = false 
     for i=1,str:utf8len() do
         char = str:utf8sub( i, i )
-        if ( char == ' ' ) then
-            tinsert( result, entry .. ' ' )
-            entry = ''
+        if ( i == 1 or needsUpper ) then
+            result = result .. char:utf8upper()
         else
-            if ( entry == '' ) then
-                entry = entry .. char:utf8upper() 
-            else
-                entry = entry .. char 
-            end
+            result = result .. char 
         end
+        needsUpper = ( char == ' ' ) 
     end
-
-    tinsert( result, entry )
 
     return result
 end
@@ -242,19 +237,7 @@ function LootDrop:OnItemLooted( _, _, itemName, quantity, _, _, mine )
     local itemClean = itemName:match( 'h(.*)[%^h]' )
     if ( itemClean ) then
         local original = itemClean
-        local parts = self:StringParts( itemClean )
-
-        local newString, part, char = '', nil, nil
-        for i=1,#parts do
-            part = parts[ i ]
-            if ( part:utf8len() > 2 ) then
-                char = part:utf8sub( 1, 1 )
-                char:utf8upper()
-            end 
-
-            newString = newString .. parts[ i ]
-        end
-
+        local newString = self:FormatItemName( itemClean )
         itemName = itemName:gsub( original, newString, 1 )
     end
 
@@ -341,5 +324,5 @@ end
 
 function LootDrop_Initialized( self )
     LOOT_DROP = LootDrop:New( self, LOOTDROP_DB )
-    SLASH_COMMANDS['/lootdrop'] = function() LOOT_DROP:OnItemLooted( nil, nil, 'hàbcdéêèf àbcdéêèf^', 1, nil, nil, true ) end
+    SLASH_COMMANDS['/lootdrop'] = function() LOOT_DROP:OnItemLooted( nil, nil, 'hàbcdéêèf of àbcdéêèf^', 1, nil, nil, true ) end
 end
