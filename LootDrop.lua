@@ -39,6 +39,7 @@ local LootDroppable     = LootDroppable
 local CBM               = CALLBACK_MANAGER
 
 local _
+local ZO_LinkHandler_ParseLink = ZO_LinkHandler_ParseLink
 
 local defaults =
 {
@@ -234,12 +235,10 @@ function LootDrop:OnItemLooted( _, _, itemName, quantity, _, _, mine )
     end
 
     local icon, _, _, _, _ = GetItemLinkInfo( itemName )
-    local itemClean = itemName:match( 'h(.*)[%^h]' )
-    if ( itemClean ) then
-        local original = itemClean
-        local newString = self:FormatItemName( itemClean )
-        itemName = itemName:gsub( original, newString, 1 )
-    end
+    local text, c = ZO_LinkHandler_ParseLink( itemName )
+    local color = ZO_ColorDef:New( c )
+    text = self:FormatItemName( text )
+    text = color:Colorize( text )
 
     if ( not icon or icon == '' ) then
         icon = [[/esoui/art/icons/icon_missing.dds]]
@@ -249,7 +248,7 @@ function LootDrop:OnItemLooted( _, _, itemName, quantity, _, _, mine )
 
     newDrop:SetTimestamp( GetFrameTimeSeconds() )
     newDrop:SetIcon( icon )
-    newDrop:SetLabel( zo_strformat( '<<1>> <<2[//x$d]>>', itemName, quantity ) )
+    newDrop:SetLabel( zo_strformat( '<<1>> <<2[//x$d]>>', text, quantity ) )
 end 
 
 --- Called when the amount of money you have changes
@@ -324,5 +323,5 @@ end
 
 function LootDrop_Initialized( self )
     LOOT_DROP = LootDrop:New( self, LOOTDROP_DB )
-    SLASH_COMMANDS['/lootdrop'] = function() LOOT_DROP:OnItemLooted( nil, nil, 'hàbcdéêèf of àbcdéêèf^', 1, nil, nil, true ) end
+    SLASH_COMMANDS['/lootdrop'] = function() LOOT_DROP:OnItemLooted( nil, nil, ZO_LinkHandler_CreateLink( '♡😄 of äÄüÜöÖß', ZO_ColorDef:New( 0.5, 0.5, 0.5 ), 'url' ) , 1, nil, nil, true ) end
 end
