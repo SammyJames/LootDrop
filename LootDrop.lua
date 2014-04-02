@@ -232,7 +232,8 @@ function LootDrop:ParseLink( link )
         return nil, nil
     end
 
-    local color, _, text = ZO_LinkHandler_ParseLink( link )
+    local text, color = ZO_LinkHandler_ParseLink( link )
+  
     if ( not text ) then
         text = link 
     end
@@ -255,6 +256,7 @@ function LootDrop:OnItemLooted( _, _, itemName, quantity, _, _, mine )
 
     local icon, _, _, _, _ = GetItemLinkInfo( itemName )
     local text, c = self:ParseLink( itemName )
+    d( c )
     local color = ZO_ColorDef:New( c )
     text = self:FormatItemName( text )
     text = color:Colorize( text )
