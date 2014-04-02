@@ -256,7 +256,6 @@ function LootDrop:OnItemLooted( _, _, itemName, quantity, _, _, mine )
 
     local icon, _, _, _, _ = GetItemLinkInfo( itemName )
     local text, c = self:ParseLink( itemName )
-    d( c )
     local color = ZO_ColorDef:New( c )
     text = self:FormatItemName( text )
     text = color:Colorize( text )
