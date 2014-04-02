@@ -33,13 +33,15 @@ LootDrop.config         = nil
 LootDrop.db             = nil
 
 local tinsert           = table.insert
+local zo_strsplit       = zo_strsplit
+local ZO_ColorDef       = ZO_ColorDef
+local ZO_LinkHandler_ParseLink = ZO_LinkHandler_ParseLink
 
 local Config            = LootDropConfig
 local LootDroppable     = LootDroppable
 local CBM               = CALLBACK_MANAGER
 
 local _
-local ZO_LinkHandler_ParseLink = ZO_LinkHandler_ParseLink
 
 local defaults =
 {
@@ -225,6 +227,23 @@ function LootDrop:FormatItemName( str )
     return result
 end
 
+function LootDrop:ParseLink( link )
+    if ( type( link ) ~= 'string' ) then
+        return nil, nil
+    end
+
+    local color, _, text = ZO_LinkHandler_ParseLink( link )
+    if ( not text ) then
+        text = link 
+    end
+
+    if ( not color ) then
+        color = 'FFFFFF'
+    end
+
+    return text, color
+end
+
 --- Called when you loot an Item
 -- @tparam string itemName
 -- @tparam number quantity 
@@ -235,7 +254,7 @@ function LootDrop:OnItemLooted( _, _, itemName, quantity, _, _, mine )
     end
 
     local icon, _, _, _, _ = GetItemLinkInfo( itemName )
-    local text, c = ZO_LinkHandler_ParseLink( itemName )
+    local text, c = self:ParseLink( itemName )
     local color = ZO_ColorDef:New( c )
     text = self:FormatItemName( text )
     text = color:Colorize( text )
