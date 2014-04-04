@@ -308,7 +308,7 @@ function LootDrop:OnXPUpdated( _, tag, exp, maxExp, reason )
     end
 
     newDrop:SetTimestamp( GetFrameTimeSeconds() )
-    newDrop:SetIcon( [[/lootdrop/textures/arrow_up.dds]] )
+    newDrop:SetIcon( [[/lootdrop/textures/exp.dds]] )
     newDrop:SetLabel( gain )
 end
 
