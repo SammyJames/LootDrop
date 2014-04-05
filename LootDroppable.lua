@@ -123,11 +123,17 @@ end
 --- Set Icon
 -- @tparam string icon
 function LootDroppable:SetIcon( icon, coords )
+    local texture, _, _, _, left, right, top, bottom = self.icon:GetTextureInfo()
+
+    if ( texture == icon ) then
+        return
+    end
+
     self.icon:SetTexture( icon )
+    
     if ( coords ) then
         self.icon:SetTextureCoords( unpack( coords ) )
     else
-        local _, _, _, _, left, right, top, bottom = self.icon:GetTextureInfo()
         self.icon:SetTextureCoords( left, right, top, bottom )
     end
 
