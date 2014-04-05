@@ -269,6 +269,7 @@ function LootDrop:OnItemLooted( _, itemName, quantity, _, _, mine )
     local newDrop, _ = self:Acquire()
 
     newDrop:SetTimestamp( GetFrameTimeSeconds() )
+    newDrop:SetRarity( color )
     newDrop:SetIcon( icon )
     newDrop:SetLabel( zo_strformat( '<<1>> <<2[//x$d]>>', text, quantity ) )
 end 
@@ -297,6 +298,7 @@ function LootDrop:OnMoneyUpdated( money )
     end
 
     newDrop:SetTimestamp( GetFrameTimeSeconds() )
+    newDrop:SetRarity( ZO_ColorDef:New( 1, 1, 1, 1 ) )
     newDrop:SetIcon( [[/esoui/art/icons/item_generic_coinbag.dds]] )
     newDrop:SetLabel( difference )
 end
@@ -333,6 +335,7 @@ function LootDrop:OnXPUpdated( tag, exp, maxExp, reason )
     end
 
     newDrop:SetTimestamp( GetFrameTimeSeconds() )
+    newDrop:SetRarity( ZO_ColorDef:New( 0, 1, 0, 1 ) )
     newDrop:SetIcon( [[/lootdrop/textures/exp.dds]] )
     newDrop:SetLabel( gain )
 end
@@ -353,6 +356,7 @@ function LootDrop:OnAPUpdate( _, _, difference )
     end
 
     newDrop:SetTimestamp( GetFrameTimeSeconds() ) 
+    newDrop:SetRarity( ZO_ColorDef:New( 0, 1, 0, 1 ) )
     newDrop:SetIcon( [[/lootdrop/textures/ap.dds]] )
     newDrop:SetLabel( difference )
 end
@@ -372,6 +376,7 @@ function LootDrop:OnBTUpdate( _, _, difference )
     end
 
     newDrop:SetTimestamp( GetFrameTimeSeconds() ) 
+    newDrop:SetRarity( ZO_ColorDef:New( 1, 0, 0, 1 ) )
     newDrop:SetIcon( [[/lootdrop/textures/bt.dds]] )
     newDrop:SetLabel( difference )
 end
@@ -384,4 +389,6 @@ end
 
 function LootDrop_Initialized( self )
     LOOT_DROP = LootDrop:New( self )
+
+    SLASH_COMMANDS['/ld'] = function() LOOT_DROP:OnItemLooted( nil, ZO_LinkHandler_CreateLink( '♡😄 of äÄüÜöÖß', ZO_ColorDef:New( 0.5, 0.5, 0.5 ), 'url' ) , 1, nil, nil, true ) end
 end

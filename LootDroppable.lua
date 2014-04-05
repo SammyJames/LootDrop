@@ -23,6 +23,8 @@ function LootDroppable:Initialize( objectPool )
     self.control = CreateControlFromVirtual( 'LootDroppable', objectPool:GetControl(), 'LootDroppable', objectPool:GetNextId() )
     self.label   = self.control:GetNamedChild( '_Name' )
     self.icon    = self.control:GetNamedChild( '_Icon' )
+    self.border  = self.control:GetNamedChild( '_Rarity' )
+    self.bg      = self.control:GetNamedChild( '_BG' )
 end
 
 --- Visibility Getter
@@ -102,6 +104,16 @@ end
 -- @tparam string label
 function LootDroppable:SetLabel( label )
     self.label:SetText( label )
+end
+
+--- Set rarity border
+-- @tparam ZO_ColorDef color
+function LootDroppable:SetRarity( color )
+    if ( not color ) then
+        color = ZO_ColorDef:New( 1, 1, 1, 1 )
+    end
+
+    self.border:SetColor( color:UnpackRGBA() )
 end
 
 function LootDroppable:GetLabel()
