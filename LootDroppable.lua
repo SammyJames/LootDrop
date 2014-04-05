@@ -126,6 +126,9 @@ function LootDroppable:SetIcon( icon, coords )
     self.icon:SetTexture( icon )
     if ( coords ) then
         self.icon:SetTextureCoords( unpack( coords ) )
+    else
+        local _, _, _, _, left, right, top, bottom = self.icon:GetTextureInfo()
+        self.icon:SetTextureCoords( left, right, top, bottom )
     end
 
     self.icon:SetHidden( false )
