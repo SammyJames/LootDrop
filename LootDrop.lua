@@ -12,7 +12,8 @@ LootDrop.db             = nil
 local tinsert           = table.insert
 local zo_strsplit       = zo_strsplit
 local ZO_ColorDef       = ZO_ColorDef
-local ZO_LinkHandler_ParseLink = ZO_LinkHandler_ParseLink
+local zo_parselink      = ZO_LinkHandler_ParseLink
+local zo_min            = zo_min
 
 local Config            = LootDropConfig
 local LootDroppable     = LootDroppable
@@ -26,6 +27,8 @@ local defaults =
     experience      = true,
     coin            = true,
     loot            = true,
+    alliance        = true,
+    battle          = true,
     width           = 202,
     height          = 42,
     padding         = 6
@@ -60,28 +63,34 @@ function LootDrop:Initialize( control )
 
     self._coinId = nil
     self._xpId   = nil
+    self._apId   = nil
+    self._btId   = nil
 
     CBM:RegisterCallback( Config.EVENT_TOGGLE_COIN, function() self:ToggleCoin()    end )
     CBM:RegisterCallback( Config.EVENT_TOGGLE_XP,   function() self:ToggleXP()      end )
     CBM:RegisterCallback( Config.EVENT_TOGGLE_LOOT, function() self:ToggleLoot()    end )
+    CBM:RegisterCallback( Config.EVENT_TOGGLE_AP,   function() self:ToggleAP()      end )
+    CBM:RegisterCallback( Config.EVENT_TOGGLE_BT,   function() self:ToggleBT()      end )
 end
 
 function LootDrop:OnLoaded( event, addon )
     if ( addon ~= 'LootDrop' ) then
         return
     end
-    self.db     = ZO_SavedVars:NewAccountWide( 'LOOTDROP_DB', 2.0, nil, defaults )
+    self.db     = ZO_SavedVars:NewAccountWide( 'LOOTDROP_DB', 2.2, nil, defaults )
     self.config = Config:New( self.db )
 
     self:ToggleCoin()
     self:ToggleXP()
     self:ToggleLoot()
+    self:ToggleAP()
+    self:ToggleBT()
 end
 
 function LootDrop:ToggleCoin() 
     if ( self.db.coin ) then
         self.current_money = GetCurrentMoney()
-        self.control:RegisterForEvent( EVENT_MONEY_UPDATE, function( ... ) self:OnMoneyUpdated( ... )  end )
+        self.control:RegisterForEvent( EVENT_MONEY_UPDATE, function( _, ... ) self:OnMoneyUpdated( ... )  end )
     else
         self.control:UnregisterForEvent( EVENT_MONEY_UPDATE )
     end
@@ -90,7 +99,7 @@ end
 function LootDrop:ToggleXP()
     if ( self.db.experience ) then
         self.current_xp = GetUnitXP( 'player' )
-        self.control:RegisterForEvent( EVENT_EXPERIENCE_UPDATE, function( ... ) self:OnXPUpdated( ... )     end )
+        self.control:RegisterForEvent( EVENT_EXPERIENCE_UPDATE, function( _, ... ) self:OnXPUpdated( ... )     end )
     else
         self.control:UnregisterForEvent( EVENT_EXPERIENCE_UPDATE )
     end
@@ -98,9 +107,25 @@ end
 
 function LootDrop:ToggleLoot()
     if ( self.db.loot ) then
-        self.control:RegisterForEvent( EVENT_LOOT_RECEIVED, function( ... ) self:OnItemLooted( ... )    end )
+        self.control:RegisterForEvent( EVENT_LOOT_RECEIVED, function( _, ... ) self:OnItemLooted( ... )    end )
     else
         self.control:UnregisterForEvent( EVENT_LOOT_RECEIVED )
+    end
+end
+
+function LootDrop:ToggleAP()
+    if ( self.db.alliance ) then
+        self.control:RegisterForEvent( EVENT_ALLIANCE_POINT_UPDATE, function( _, ... ) self:OnAPUpdate( ... ) end )
+    else
+        self.control:UnregisterForEvent( EVENT_ALLIANCE_POINT_UPDATE )
+    end
+end
+
+function LootDrop:ToggleBT()
+    if ( self.db.battle ) then
+        self.control:RegisterForEvent( EVENT_BATTLE_TOKEN_UPDATE, function( _, ... ) self:OnBTUpdate( ... ) end )
+    else
+        self.control:UnregisterForEvent( EVENT_BATTLE_TOKEN_UPDATE )
     end
 end
 
@@ -209,7 +234,7 @@ function LootDrop:ParseLink( link )
         return nil, nil
     end
 
-    local text, color = ZO_LinkHandler_ParseLink( link )
+    local text, color = zo_parselink( link )
   
     if ( not text ) then
         text = link 
@@ -226,7 +251,7 @@ end
 -- @tparam string itemName
 -- @tparam number quantity 
 -- @tparam boolean mine
-function LootDrop:OnItemLooted( _, _, itemName, quantity, _, _, mine )
+function LootDrop:OnItemLooted( _, itemName, quantity, _, _, mine )
     if ( not mine ) then
         return
     end
@@ -250,7 +275,7 @@ end
 
 --- Called when the amount of money you have changes
 -- @tparam number money 
-function LootDrop:OnMoneyUpdated( _, money, _ )
+function LootDrop:OnMoneyUpdated( money )
     if ( self.current_money == money ) then
         return
     end
@@ -276,7 +301,7 @@ function LootDrop:OnMoneyUpdated( _, money, _ )
     newDrop:SetLabel( difference )
 end
 
-function LootDrop:OnXPUpdated( _, tag, exp, maxExp, reason )
+function LootDrop:OnXPUpdated( tag, exp, maxExp, reason )
     if ( tag ~= 'player' ) then
         return
     end
@@ -312,6 +337,45 @@ function LootDrop:OnXPUpdated( _, tag, exp, maxExp, reason )
     newDrop:SetLabel( gain )
 end
 
+function LootDrop:OnAPUpdate( _, _, difference )
+    d( points, difference )
+    local newDrop = nil
+    if ( self._apId ) then
+        newDrop = self:Get( self._apId )
+
+        if ( newDrop ) then
+            difference = difference + ( newDrop:GetLabel() or 0 )
+        end
+    end
+
+    if ( not newDrop ) then
+        newDrop, self._apId = self:Acquire()
+    end
+
+    newDrop:SetTimestamp( GetFrameTimeSeconds() ) 
+    newDrop:SetIcon( [[/lootdrop/textures/ap.dds]] )
+    newDrop:SetLabel( difference )
+end
+
+function LootDrop:OnBTUpdate( _, _, difference )
+    local newDrop = nil
+    if ( self._btId ) then
+        newDrop = self:Get( self._btId )
+
+        if ( newDrop ) then
+            difference = difference + ( newDrop:GetLabel() or 0 )
+        end
+    end
+
+    if ( not newDrop ) then
+        newDrop, self._btId = self:Acquire()
+    end
+
+    newDrop:SetTimestamp( GetFrameTimeSeconds() ) 
+    newDrop:SetIcon( [[/lootdrop/textures/bt.dds]] )
+    newDrop:SetLabel( difference )
+end
+
 --- Getter for the control xml element
 -- @treturn table 
 function LootDrop:GetControl()
@@ -319,6 +383,5 @@ function LootDrop:GetControl()
 end
 
 function LootDrop_Initialized( self )
-    LOOT_DROP = LootDrop:New( self, LOOTDROP_DB )
-    SLASH_COMMANDS['/lootdrop'] = function() LOOT_DROP:OnItemLooted( nil, nil, ZO_LinkHandler_CreateLink( '♡😄 of äÄüÜöÖß', ZO_ColorDef:New( 0.5, 0.5, 0.5 ), 'url' ) , 1, nil, nil, true ) end
+    LOOT_DROP = LootDrop:New( self )
 end
