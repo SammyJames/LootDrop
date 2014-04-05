@@ -122,8 +122,12 @@ end
 
 --- Set Icon
 -- @tparam string icon
-function LootDroppable:SetIcon( icon )
+function LootDroppable:SetIcon( icon, coords )
     self.icon:SetTexture( icon )
+    if ( coords ) then
+        self.icon:SetTextureCoords( unpack( coords ) )
+    end
+
     self.icon:SetHidden( false )
 end
 

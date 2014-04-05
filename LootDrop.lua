@@ -336,7 +336,7 @@ function LootDrop:OnXPUpdated( tag, exp, maxExp, reason )
 
     newDrop:SetTimestamp( GetFrameTimeSeconds() )
     newDrop:SetRarity( ZO_ColorDef:New( 0, 1, 0, 1 ) )
-    newDrop:SetIcon( [[/lootdrop/textures/exp.dds]] )
+    newDrop:SetIcon( [[/lootdrop/textures/decoration.dds]], { 0.734375, 1, 0, 0.234375 } )
     newDrop:SetLabel( gain )
 end
 
@@ -356,7 +356,7 @@ function LootDrop:OnAPUpdate( _, _, difference )
 
     newDrop:SetTimestamp( GetFrameTimeSeconds() ) 
     newDrop:SetRarity( ZO_ColorDef:New( 0, 1, 0, 1 ) )
-    newDrop:SetIcon( [[/lootdrop/textures/ap.dds]] )
+    newDrop:SetIcon( [[/lootdrop/textures/decoration.dds]], { 0, 0.2734375, 0.46875, 0.6328125 } )
     newDrop:SetLabel( difference )
 end
 
@@ -376,7 +376,7 @@ function LootDrop:OnBTUpdate( _, _, difference )
 
     newDrop:SetTimestamp( GetFrameTimeSeconds() ) 
     newDrop:SetRarity( ZO_ColorDef:New( 1, 0, 0, 1 ) )
-    newDrop:SetIcon( [[/lootdrop/textures/bt.dds]] )
+    newDrop:SetIcon( [[/lootdrop/textures/decoration.dds]], { 0.734375, 1, 0.2343750, 0.46875 } )
     newDrop:SetLabel( difference )
 end
 
