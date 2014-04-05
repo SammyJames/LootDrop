@@ -341,7 +341,6 @@ function LootDrop:OnXPUpdated( tag, exp, maxExp, reason )
 end
 
 function LootDrop:OnAPUpdate( _, _, difference )
-    d( points, difference )
     local newDrop = nil
     if ( self._apId ) then
         newDrop = self:Get( self._apId )
