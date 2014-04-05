@@ -78,7 +78,6 @@ function LootDroppable:Reset()
 
     self.label:SetText( '' )
     self.icon:SetHidden( true )
-    self.icon:SetTexture( '' )
     self.timestamp = 0
 end
 
@@ -125,12 +124,10 @@ end
 function LootDroppable:SetIcon( icon, coords )
     local texture, _, _, _, left, right, top, bottom = self.icon:GetTextureInfo()
 
-    if ( texture == icon ) then
-        return
+    if ( texture ~= icon ) then
+        self.icon:SetTexture( icon )
     end
 
-    self.icon:SetTexture( icon )
-    
     if ( coords ) then
         self.icon:SetTextureCoords( unpack( coords ) )
     else
