@@ -1,8 +1,7 @@
 LootDrop
 ========
-Show me what you got when the motha fuckin loot drops
------------------------------------------------------
+A Simple Loot Notification Addon
+--------------------------------
+![image](http://i.imgur.com/Np1aWxl.jpg)
 
-![image](http://i.imgur.com/pdCV2VH.png)
-
-Shows you look when you loot it~
+LootDrop is meant to be incredibly simple and intuitive. It just works, all you have to do is install it and it'll do everything else. 
