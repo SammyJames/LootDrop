@@ -9,8 +9,8 @@ function LootDropAnimPool:New()
     return result
 end
 
-function LootDropAnimPool:Create()
-    return LibAnim:New() 
+function LootDropAnimPool:Create( animType, loop )
+    return LibAnim:New( nil, animType, loop ) 
 end
 
 function LootDropAnimPool:Reset( anim )

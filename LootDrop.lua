@@ -19,6 +19,10 @@ local Config            = LootDropConfig
 local LootDroppable     = LootDroppable
 local CBM               = CALLBACK_MANAGER
 
+local LootDropFade      = LootDropFade
+local LootDropSlide     = LootDropSlide
+local LootDropPop       = LootDropPop
+
 local _
 
 local defaults =
@@ -60,6 +64,7 @@ function LootDrop:Initialize( control )
     self._fadeIn  = LootDropFade:New( 0.0, 1.0, 200 )
     self._fadeOut = LootDropFade:New( 1.0, 0.0, 200 )
     self._slide   = LootDropSlide:New( 200 )
+    self._pop     = LootDropPop:New()
 
     self._coinId = nil
     self._xpId   = nil
@@ -284,11 +289,14 @@ function LootDrop:OnMoneyUpdated( money )
     local difference = money - self.current_money
     self.current_money = money
 
+    local pop = false
+
     local newDrop = nil
     if ( self._coinId ) then
         newDrop = self:Get( self._coinId )
 
         if ( newDrop ) then
+            pop = true
             difference = difference + ( newDrop:GetLabel() or 0 )
         end
     end
@@ -298,9 +306,14 @@ function LootDrop:OnMoneyUpdated( money )
     end
 
     newDrop:SetTimestamp( GetFrameTimeSeconds() )
-    newDrop:SetRarity( ZO_ColorDef:New( 1, 1, 1, 1 ) )
+    newDrop:SetRarity( ZO_ColorDef:New( 'FFFF66' ) )
     newDrop:SetIcon( [[/esoui/art/icons/item_generic_coinbag.dds]] )
     newDrop:SetLabel( difference )
+
+    if ( pop ) then
+        local anim = self._pop:Apply( newDrop.control )
+        anim:Forward()
+    end
 end
 
 function LootDrop:OnXPUpdated( tag, exp, maxExp, reason )
@@ -321,11 +334,14 @@ function LootDrop:OnXPUpdated( tag, exp, maxExp, reason )
         return
     end
 
+    local pop = false
+
     local newDrop = nil
     if ( self._xpId ) then
         newDrop = self:Get( self._xpId )
 
         if ( newDrop ) then
+            pop = true
             gain = gain + ( newDrop:GetLabel() or 0 )
         end
     end
@@ -338,14 +354,22 @@ function LootDrop:OnXPUpdated( tag, exp, maxExp, reason )
     newDrop:SetRarity( ZO_ColorDef:New( 0, 1, 0, 1 ) )
     newDrop:SetIcon( [[/lootdrop/textures/decoration.dds]], { 0.734375, 1, 0, 0.234375 } )
     newDrop:SetLabel( gain )
+
+    if ( pop ) then
+        local anim = self._pop:Apply( newDrop.control )
+        anim:Forward()
+    end
 end
 
 function LootDrop:OnAPUpdate( _, _, difference )
+    local pop = false
+
     local newDrop = nil
     if ( self._apId ) then
         newDrop = self:Get( self._apId )
 
         if ( newDrop ) then
+            pop = true
             difference = difference + ( newDrop:GetLabel() or 0 )
         end
     end
@@ -355,17 +379,25 @@ function LootDrop:OnAPUpdate( _, _, difference )
     end
 
     newDrop:SetTimestamp( GetFrameTimeSeconds() ) 
-    newDrop:SetRarity( ZO_ColorDef:New( 0, 1, 0, 1 ) )
+    newDrop:SetRarity( ZO_ColorDef:New( 0, 0, 1, 1 ) )
     newDrop:SetIcon( [[/lootdrop/textures/decoration.dds]], { 0, 0.2734375, 0.46875, 0.6328125 } )
     newDrop:SetLabel( difference )
+
+    if ( pop ) then
+        local anim = self._pop:Apply( newDrop.control )
+        anim:Forward()
+    end
 end
 
 function LootDrop:OnBTUpdate( _, _, difference )
+    local pop = false
+
     local newDrop = nil
     if ( self._btId ) then
         newDrop = self:Get( self._btId )
 
         if ( newDrop ) then
+            pop = true
             difference = difference + ( newDrop:GetLabel() or 0 )
         end
     end
@@ -378,6 +410,11 @@ function LootDrop:OnBTUpdate( _, _, difference )
     newDrop:SetRarity( ZO_ColorDef:New( 1, 0, 0, 1 ) )
     newDrop:SetIcon( [[/lootdrop/textures/decoration.dds]], { 0.734375, 1, 0.2343750, 0.46875 } )
     newDrop:SetLabel( difference )
+    
+    if ( pop ) then
+        local anim = self._pop:Apply( newDrop.control )
+        anim:Forward()
+    end
 end
 
 --- Getter for the control xml element
@@ -388,6 +425,4 @@ end
 
 function LootDrop_Initialized( self )
     LOOT_DROP = LootDrop:New( self )
-
-    SLASH_COMMANDS['/ld'] = function() LOOT_DROP:OnItemLooted( nil, ZO_LinkHandler_CreateLink( '♡😄 of äÄüÜöÖß', ZO_ColorDef:New( 0.5, 0.5, 0.5 ), 'url' ) , 1, nil, nil, true ) end
 end
