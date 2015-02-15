@@ -10,7 +10,6 @@ LootDrop.config         = nil
 LootDrop.db             = nil
 
 local tinsert           = table.insert
-local zo_strsplit       = zo_strsplit
 local ZO_ColorDef       = ZO_ColorDef
 local zo_parselink      = ZO_LinkHandler_ParseLink
 local zo_min            = zo_min
@@ -171,7 +170,7 @@ function LootDrop:OnUpdate( frameTime )
 
     if ( self:IsDirty( DirtyFlags.LAYOUT ) ) then
         local last_y = 0
-        local entry = nil
+        entry = nil
 
         for i=1,#self._active do
             entry = self._active[ i ]
@@ -219,15 +218,19 @@ end
 function LootDrop:FormatItemName( str )
     local result = ''
 
-    local entry, char = '', nil
-    local needsUpper = false 
+    local entry = nil
+    local char = ''
+    local needsUpper = false
+
     for i=1,str:utf8len() do
         char = str:utf8sub( i, i )
+
         if ( i == 1 or needsUpper ) then
             result = result .. char:utf8upper()
         else
             result = result .. char 
         end
+        
         needsUpper = ( char == ' ' ) 
     end
 

@@ -5,7 +5,7 @@
 -- @author Pawkette ( pawkette.heals@gmail.com )
 ------------------------------------------------
 
-LootDroppable           = ZO_Object:Subclass()
+LootDroppable = ZO_Object:Subclass()
 
 --- Create a new instance of a LootDroppable
 -- @treturn LootDroppable
