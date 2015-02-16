@@ -277,9 +277,9 @@ function LootDrop:OnInventorySlotUpdated( bagId, slotId, newItem, _, updateReaso
 
     local link = GetItemLink( bagId, slotId, LINK_STYLE_DEFAULT )
     local _, identifier = self:ParseLink( link )
-    local _, _, _, _, _, _, _, quality = GetItemInfo( bagId, slotId )
+    local icon, _, _, _, _, _, _, quality = GetItemInfo( bagId, slotId )
 
-    tinsert( self.pending_pool, { [ 'id' ] = identifier, [ 'quality' ] = quality } )
+    tinsert( self.pending_pool, { [ 'id' ] = identifier, [ 'quality' ] = quality, [ 'icon' ] = icon } )
 end
 
 --- Locate a pending item from the pending pool
@@ -314,6 +314,10 @@ function LootDrop:OnItemLooted( _, itemName, quantity, _, _, mine )
     local pending = self:FindPendingItem( identifier )
     if ( pending ) then
         quality = pending.quality
+
+        if ( not icon or icon == '' ) then
+            icon = pending.icon
+        end
     end
 
     local color_def = GetItemQualityColor( quality )
