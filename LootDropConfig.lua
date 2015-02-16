@@ -8,7 +8,7 @@ LootDropConfig.EVENT_TOGGLE_BT               = 'LOOTDROP_TOGGLE_BT'
 
 
 local CBM = CALLBACK_MANAGER
-local LAM = LibStub( 'LibAddonMenu-1.0' )
+local LAM = LibStub( 'LibAddonMenu-2.0' )
 if ( not LAM ) then return end
 
 function LootDropConfig:New( ... )
@@ -19,30 +19,106 @@ end
 
 function LootDropConfig:Initialize( db )
     self.db = db
-    self.config_panel = LAM:CreateControlPanel( '_lootdrop', 'LootDrop' )
+    LAM:RegisterAddonPanel( 'LootDrop_Config', 
+        { 
+            type = 'panel', 
+            name = 'LootDrop', 
+            author = 'Pawkette', 
+            version = '1.0', 
+            slashCommand = '/lootdrop', 
+            registerForRefresh = true,
+            registerForDefaults = true 
+        } )
 
-    LAM:AddHeader( self.config_panel, '_general', 'General' )
-    LAM:AddCheckbox( self.config_panel, '_xp', 'Experience', 'Should we show experience gains.',
-        function() return self.db.experience end, function() self:ToggleXP() end )
-    LAM:AddCheckbox( self.config_panel, '_coin', 'Gold', 'Should we show gold gain and loss.',
-        function() return self.db.coin end, function() self:ToggleCoin() end )
-    LAM:AddCheckbox( self.config_panel, '_loot', 'Loot', 'Should we show loot.',
-        function() return self.db.loot end, function() self:ToggleLoot() end )
-    LAM:AddCheckbox( self.config_panel, '_ap', 'Alliance Points', 'Should we show Alliance Points.',
-        function() return self.db.alliance end, function() self:ToggleAP() end )
-    LAM:AddCheckbox( self.config_panel, '_bt', 'Battle Tokens', 'Should we show Battle Tokens.',
-        function() return self.db.battle end, function() self:ToggleBT() end )
+    local options = 
+    {
+        [ 1 ] = 
+        {
+            type = 'header',
+            name = 'General',
+            width = 'full',
+        },
+        [ 2 ] = 
+        {
+            type = 'checkbox',
+            name = 'Experience',
+            tooltip = 'Should we show experience gain.',
+            getFunc = function() return self.db.experience end,
+            setFunc = function( _ ) self:ToggleXP() end,
+        },
+        [ 3 ] = 
+        {
+            type = 'checkbox',
+            name = 'Coin',
+            tooltip = 'Should we show coin gain and loss.',
+            getFunc = function() return self.db.coin end,
+            setFunc = function( _ ) self:ToggleCoin() end,
+        },
+        [ 4 ] = 
+        {
+            type = 'checkbox',
+            name = 'Loot',
+            tooltip = 'Should we show loot.',
+            getFunc = function() return self.db.loot end,
+            setFunc = function( _ ) self:ToggleLoot() end,
+        },
+        [ 5 ] = 
+        {
+            type = 'checkbox',
+            name = 'Alliance Points',
+            tooltip = 'Should we show Alliance Points.',
+            getFunc = function() return self.db.alliance end,
+            setFunc = function( _ ) self:ToggleAP() end,
+        }, 
+        [ 6 ] = 
+        {
+            type = 'checkbox',
+            name = 'Battle Tokens',
+            tooltip = 'Should we show Alliance Points.',
+            getFunc = function() return self.db.battle end,
+            setFunc = function( _ ) self:ToggleBT() end,
+        },   
+        [ 7 ] =
+        {
+            type = 'editbox',
+            name = 'Display Duration',
+            tooltip = 'How long should we display each dropper.',
+            getFunc = function() return self.db.displayduration end,
+            setFunc = function( duration ) self.db.displayduration = duration end,
+        },       
+        [ 8 ] =
+        {
+            type = 'header',
+            name = 'Dimensions',
+            width = 'full',
+        },  
+        [ 9 ] =
+        {
+            type = 'editbox',
+            name = 'Width',
+            tooltip = 'The width of each dropper.',
+            getFunc = function() return self.db.width end,
+            setFunc = function( width ) self.db.width = width end,
+        },
+        [ 10 ] =
+        {
+            type = 'editbox',
+            name = 'Height',
+            tooltip = 'The height of each dropper.',
+            getFunc = function() return self.db.height end,
+            setFunc = function( height ) self.db.height = height end,
+        },   
+        [ 11 ] =
+        {
+            type = 'editbox',
+            name = 'Padding',
+            tooltip = 'The padding between each dropper.',
+            getFunc = function() return self.db.padding end,
+            setFunc = function( padding ) self.db.padding = padding end,
+        },
+    }
 
-    LAM:AddSlider( self.config_panel, '_displayduration', 'Display Duration', 'How long should we show droppables for.', 1, 30, 1,
-        function() return self.db.displayduration end, function( duration ) self.db.displayduration = duration end )
-
-    LAM:AddHeader( self.config_panel, '_dimensions', 'Dimensions' )
-    LAM:AddSlider( self.config_panel, '_width', 'Width', 'Entry Width', 100, 300, 1,
-        function() return self.db.width end, function( width ) self.db.width = width end )
-    LAM:AddSlider( self.config_panel, '_height', 'Height', 'Entry Height', 24, 100, 1,
-        function() return self.db.height end, function( height ) self.db.height = height end )
-    LAM:AddSlider( self.config_panel, '_padding', 'Padding', 'Padding between entries.', 0, 20, 1, 
-        function() return self.db.padding end, function( padding ) self.db.padding = padding end )
+    LAM:RegisterOptionControls( 'LootDrop_Config', options )
 end
 
 function LootDropConfig:ToggleXP()

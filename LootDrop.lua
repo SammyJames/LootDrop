@@ -5,14 +5,16 @@
 ------------------------------------------------
 local LootDropPool      = LootDropPool
 local LootDrop          = LootDropPool:Subclass()
-LootDrop.dirty_flags    = setmetatable( {}, { __mode = 'kv'} )
+LootDrop.dirty_flags    = {}
+LootDrop.pending_pool   = setmetatable( {}, { __mode = 'kv' } )
 LootDrop.config         = nil
 LootDrop.db             = nil
 
 local tinsert           = table.insert
+local tremove           = table.remove
 local ZO_ColorDef       = ZO_ColorDef
-local zo_parselink      = ZO_LinkHandler_ParseLink
 local zo_min            = zo_min
+local zo_parselink      = ZO_LinkHandler_ParseLink
 
 local Config            = LootDropConfig
 local LootDroppable     = LootDroppable
@@ -23,6 +25,8 @@ local LootDropSlide     = LootDropSlide
 local LootDropPop       = LootDropPop
 
 local _
+
+
 
 local defaults =
 {
@@ -103,7 +107,7 @@ end
 function LootDrop:ToggleXP()
     if ( self.db.experience ) then
         self.current_xp = GetUnitXP( 'player' )
-        self.control:RegisterForEvent( EVENT_EXPERIENCE_UPDATE, function( _, ... ) self:OnXPUpdated( ... )     end )
+        self.control:RegisterForEvent( EVENT_EXPERIENCE_UPDATE, function( _, ... ) self:OnXPUpdated( ... ) end )
     else
         self.control:UnregisterForEvent( EVENT_EXPERIENCE_UPDATE )
     end
@@ -111,9 +115,11 @@ end
 
 function LootDrop:ToggleLoot()
     if ( self.db.loot ) then
-        self.control:RegisterForEvent( EVENT_LOOT_RECEIVED, function( _, ... ) self:OnItemLooted( ... )    end )
+        self.control:RegisterForEvent( EVENT_LOOT_RECEIVED, function( _, ... ) self:OnItemLooted( ... )  end )
+        self.control:RegisterForEvent( EVENT_INVENTORY_SINGLE_SLOT_UPDATE, function( _, ... ) self:OnInventorySlotUpdated( ... ) end )
     else
         self.control:UnregisterForEvent( EVENT_LOOT_RECEIVED )
+        self.control:UnregisterForEvent( EVENT_INVENTORY_SINGLE_SLOT_UPDATE )
     end
 end
 
@@ -133,10 +139,10 @@ function LootDrop:ToggleBT()
     end
 end
 
---- Check if any flags are set
--- if no flag is passed will check if any flag is set.
--- @tparam DirtyFlags flag
--- @treturn boolean
+--- Check if any flags are set, if no flag is passed will check if any flag is set.
+--
+-- @param flag the flag to check, or nil for any flag
+-- @return if the provided flag is set, or any flag is set if nil
 function LootDrop:IsDirty( flag )
     if ( not flag ) then return #self.dirty_flags ~= 0 end
 
@@ -150,6 +156,8 @@ function LootDrop:IsDirty( flag )
 end
 
 --- On every consecutive frame
+-- 
+-- @param frameTime     the delta between frames
 function LootDrop:OnUpdate( frameTime ) 
     if ( not #self._active ) then
         return
@@ -189,13 +197,16 @@ function LootDrop:OnUpdate( frameTime )
 end
 
 --- Create a new loot droppable
--- @tparam ZO_ObjectPool _ unused
+--
+-- @return a new LootDroppable
 function LootDrop:CreateDroppable()
     return LootDroppable:New( self )
 end
 
 --- Reset a loot droppable
--- @tparam LootDroppable droppable 
+--
+-- @param droppable the droppable to reset
+-- @param key       a key to check against 
 function LootDrop:ResetDroppable( droppable, key )
     if ( key == self._coinId ) then
         self._coinId = nil
@@ -237,38 +248,77 @@ function LootDrop:FormatItemName( str )
     return result
 end
 
+--- Parse an item link 
+--
+-- @param link
+-- @return the text of the link and the identifier
 function LootDrop:ParseLink( link )
     if ( type( link ) ~= 'string' ) then
         return nil, nil
     end
 
-    local text, color = zo_parselink( link )
-  
-    if ( not text ) then
+    local text, _, _, identifier = zo_parselink( link )
+
+    if ( not text or text == '' ) then
         text = link 
     end
+    return text, identifier
+end
 
-    if ( not color ) then
-        color = 'FFFFFF'
+--- Called when the player loots stuff, and does other things >.>
+--
+-- @param bagId     the bag id of the item
+-- @param slotId    the slot id within the bag
+-- @param newItem   if the item is new or not
+function LootDrop:OnInventorySlotUpdated( bagId, slotId, newItem, _, updateReason )
+    if ( ( updateReason ~= INVENTORY_UPDATE_REASON_DEFAULT ) or ( bagId ~= BAG_BACKPACK ) ) then
+        return
     end
 
-    return text, color
+    local link = GetItemLink( bagId, slotId, LINK_STYLE_DEFAULT )
+    local _, identifier = self:ParseLink( link )
+    local _, _, _, _, _, _, _, quality = GetItemInfo( bagId, slotId )
+
+    tinsert( self.pending_pool, { [ 'id' ] = identifier, [ 'quality' ] = quality } )
+end
+
+--- Locate a pending item from the pending pool
+--
+-- @param identifier    the id of the item we're looking for
+-- @return  pending item or nil
+function LootDrop:FindPendingItem( identifier ) 
+
+    for k,pending in pairs( self.pending_pool ) do
+        if ( pending[ 'id' ] == identifier ) then
+            return tremove( self.pending_pool, k )
+        end
+    end
+
+    return nil
 end
 
 --- Called when you loot an Item
--- @tparam string itemName
--- @tparam number quantity 
--- @tparam boolean mine
+--
+-- @param itemName  the name of the item looted (link)
+-- @param quantity  the number of items looted
+-- @param mine      if this item is the local player's
 function LootDrop:OnItemLooted( _, itemName, quantity, _, _, mine )
     if ( not mine ) then
         return
     end
 
     local icon, _, _, _, _ = GetItemLinkInfo( itemName )
-    local text, c = self:ParseLink( itemName )
-    local color = ZO_ColorDef:New( c )
+    local text, identifier = self:ParseLink( itemName )
+    local quality = ITEM_QUALITY_TRASH
+
+    local pending = self:FindPendingItem( identifier )
+    if ( pending ) then
+        quality = pending.quality
+    end
+
+    local color_def = GetItemQualityColor( quality )
     text = self:FormatItemName( text )
-    text = color:Colorize( text )
+    text = color_def:Colorize( text )
 
     if ( not icon or icon == '' ) then
         icon = [[/esoui/art/icons/icon_missing.dds]]
@@ -277,13 +327,14 @@ function LootDrop:OnItemLooted( _, itemName, quantity, _, _, mine )
     local newDrop, _ = self:Acquire()
 
     newDrop:SetTimestamp( GetFrameTimeSeconds() )
-    newDrop:SetRarity( color )
+    newDrop:SetRarity( color_def )
     newDrop:SetIcon( icon )
     newDrop:SetLabel( zo_strformat( '<<1>> <<2[//x$d]>>', text, quantity ) )
 end 
 
 --- Called when the amount of money you have changes
--- @tparam number money 
+--
+-- @param money     the amount of money you currently have
 function LootDrop:OnMoneyUpdated( money )
     if ( self.current_money == money ) then
         return
@@ -319,6 +370,12 @@ function LootDrop:OnMoneyUpdated( money )
     end
 end
 
+--- Called when the player's XP changes
+--
+-- @param tag       which player this applies too
+-- @param exp       the amount of xp change
+-- @param maxExp    the current max amount of xp for this level
+-- @param reason    why the plasyer gained xp
 function LootDrop:OnXPUpdated( tag, exp, maxExp, reason )
     if ( tag ~= 'player' ) then
         return
@@ -364,6 +421,9 @@ function LootDrop:OnXPUpdated( tag, exp, maxExp, reason )
     end
 end
 
+--- Called when the player's AP changes
+-- 
+-- @param difference    the amount of AP change
 function LootDrop:OnAPUpdate( _, _, difference )
     local pop = false
 
@@ -392,6 +452,9 @@ function LootDrop:OnAPUpdate( _, _, difference )
     end
 end
 
+--- Called when the player's BT changes
+--
+-- @param difference    the amount of BT change
 function LootDrop:OnBTUpdate( _, _, difference )
     local pop = false
 
@@ -421,7 +484,8 @@ function LootDrop:OnBTUpdate( _, _, difference )
 end
 
 --- Getter for the control xml element
--- @treturn table 
+--
+-- @return the visual UI
 function LootDrop:GetControl()
     return self.control
 end
