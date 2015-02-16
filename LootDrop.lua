@@ -15,6 +15,7 @@ local tremove           = table.remove
 local ZO_ColorDef       = ZO_ColorDef
 local zo_min            = zo_min
 local zo_parselink      = ZO_LinkHandler_ParseLink
+local zo_commify        = ZO_CommaDelimitNumber
 
 local Config            = LootDropConfig
 local LootDroppable     = LootDroppable
@@ -289,7 +290,7 @@ end
 function LootDrop:FindPendingItem( identifier ) 
 
     for k,pending in pairs( self.pending_pool ) do
-        if ( pending[ 'id' ] == identifier ) then
+        if ( pending.id == identifier ) then
             return tremove( self.pending_pool, k )
         end
     end
@@ -314,10 +315,7 @@ function LootDrop:OnItemLooted( _, itemName, quantity, _, _, mine )
     local pending = self:FindPendingItem( identifier )
     if ( pending ) then
         quality = pending.quality
-
-        if ( not icon or icon == '' ) then
-            icon = pending.icon
-        end
+        icon = pending.icon
     end
 
     local color_def = GetItemQualityColor( quality )
@@ -366,7 +364,7 @@ function LootDrop:OnMoneyUpdated( money )
     newDrop:SetTimestamp( GetFrameTimeSeconds() )
     newDrop:SetRarity( ZO_ColorDef:New( 'FFFF66' ) )
     newDrop:SetIcon( [[/esoui/art/icons/item_generic_coinbag.dds]] )
-    newDrop:SetLabel( difference )
+    newDrop:SetLabel( zo_commify( difference ) )
 
     if ( pop ) then
         local anim = self._pop:Apply( newDrop.control )
@@ -417,7 +415,7 @@ function LootDrop:OnXPUpdated( tag, exp, maxExp, reason )
     newDrop:SetTimestamp( GetFrameTimeSeconds() )
     newDrop:SetRarity( ZO_ColorDef:New( 0, 1, 0, 1 ) )
     newDrop:SetIcon( [[/lootdrop/textures/decoration.dds]], { 0.734375, 1, 0, 0.234375 } )
-    newDrop:SetLabel( gain )
+    newDrop:SetLabel( zo_commify( gain ) )
 
     if ( pop ) then
         local anim = self._pop:Apply( newDrop.control )
@@ -448,7 +446,7 @@ function LootDrop:OnAPUpdate( _, _, difference )
     newDrop:SetTimestamp( GetFrameTimeSeconds() ) 
     newDrop:SetRarity( ZO_ColorDef:New( 0, 0, 1, 1 ) )
     newDrop:SetIcon( [[/lootdrop/textures/decoration.dds]], { 0, 0.2734375, 0.46875, 0.6328125 } )
-    newDrop:SetLabel( difference )
+    newDrop:SetLabel( zo_commify( difference ) )
 
     if ( pop ) then
         local anim = self._pop:Apply( newDrop.control )
@@ -479,7 +477,7 @@ function LootDrop:OnBTUpdate( _, _, difference )
     newDrop:SetTimestamp( GetFrameTimeSeconds() ) 
     newDrop:SetRarity( ZO_ColorDef:New( 1, 0, 0, 1 ) )
     newDrop:SetIcon( [[/lootdrop/textures/decoration.dds]], { 0.734375, 1, 0.2343750, 0.46875 } )
-    newDrop:SetLabel( difference )
+    newDrop:SetLabel( zo_commify( difference ) )
     
     if ( pop ) then
         local anim = self._pop:Apply( newDrop.control )
