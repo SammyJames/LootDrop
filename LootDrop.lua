@@ -37,14 +37,13 @@ local defaults =
     battle          = true,
     width           = 202,
     height          = 42,
-    padding         = 6
+    padding         = 6,
     font            = 
     {
-        face = '',
+        face = 'Univers 55',
         size = 14,
-        deco = 'shadow'
-        align = 'LEFT'
-    }
+        deco = 'thin-outline',
+    },
 }
 
 --- Flags for updating UI aspects
@@ -97,7 +96,7 @@ function LootDrop:OnLoaded( event, addon )
     if ( addon ~= 'LootDrop' ) then
         return
     end
-    self.db     = ZO_SavedVars:NewAccountWide( 'LOOTDROP_DB', 2.3, nil, defaults )
+    self.db     = ZO_SavedVars:NewAccountWide( 'LOOTDROP_DB', 2.8, nil, defaults )
     self.config = Config:New( self.db )
 
     self:ToggleCoin()

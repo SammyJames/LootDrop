@@ -8,7 +8,7 @@
 LootDroppable = ZO_Object:Subclass()
 
 local LMP = LibStub( 'LibMediaProvider-1.0' )
-if ( !LMP ) then return end
+if ( not LMP ) then return end
 
 --- Create a new instance of a LootDroppable
 -- @treturn LootDroppable
@@ -30,7 +30,7 @@ function LootDroppable:Initialize( objectPool )
     self.bg      = self.control:GetNamedChild( '_BG' )
 
     if ( self.label ) then
-        if ( self.db.font.face = '' ) then
+        if ( self.db.font.face == '' ) then
             self.label:SetFont( ZoFontGame )
         else
             local path = LMP:Fetch( LMP.MediaType.FONT, self.db.font.face )
@@ -39,10 +39,8 @@ function LootDroppable:Initialize( objectPool )
                 fmt = fmt .. '|%s'
             end
 
-            self.label:SetFont( fmt:format( path, self.db.font.size, self.db.font.decoration ) )
+            self.label:SetFont( fmt:format( path, self.db.font.size, self.db.font.deco or '' ) )
         end
-
-        self.label:SetHorizontalAlignment( _G[ "TEXT_ALIGN_" .. self.db.font.align ] )
     end
 end
 

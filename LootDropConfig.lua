@@ -26,7 +26,7 @@ function LootDropConfig:Initialize( db )
         { 
             type = 'panel', 
             name = 'LootDrop', 
-            author = 'Pawkette', 
+            author = '|cFF66CCPawkette|r', 
             version = '100010', 
             slashCommand = '/lootdrop', 
             registerForRefresh = true,
@@ -43,13 +43,6 @@ function LootDropConfig:Initialize( db )
         'soft-shadow-thin', 
         'soft-shadow-thick', 
         'shadow' 
-    }
-
-    local alignments = 
-    {
-        "CENTER", 
-        "LEFT", 
-        "RIGHT"
     }
 
     local options = 
@@ -104,9 +97,10 @@ function LootDropConfig:Initialize( db )
         {
             type = 'editbox',
             name = 'Display Duration',
+            textType = TEXT_TYPE_NUMERIC,
             tooltip = 'How long should we display each dropper.',
             getFunc = function() return self.db.displayduration end,
-            setFunc = function( duration ) self.db.displayduration = duration end,
+            setFunc = function( duration ) self.db.displayduration = tonumber( duration ) end,
         },       
         [ 8 ] =
         {
@@ -118,34 +112,34 @@ function LootDropConfig:Initialize( db )
         {
             type = 'editbox',
             name = 'Width',
-            numeric = true,
+            textType = TEXT_TYPE_NUMERIC,
             tooltip = 'The width of each dropper.',
             getFunc = function() return self.db.width end,
-            setFunc = function( width ) self.db.width = width end,
+            setFunc = function( width ) self.db.width = tonumber( width ) end,
         },
         [ 10 ] =
         {
             type = 'editbox',
             name = 'Height',
-            numeric = true,
+            textType = TEXT_TYPE_NUMERIC,
             tooltip = 'The height of each dropper.',
             getFunc = function() return self.db.height end,
-            setFunc = function( height ) self.db.height = height end,
+            setFunc = function( height ) self.db.height = tonumber( height ) end,
         },   
         [ 11 ] =
         {
             type = 'editbox',
             name = 'Padding',
-            numeric = true,
+            textType = TEXT_TYPE_NUMERIC,
             tooltip = 'The padding between each dropper.',
             getFunc = function() return self.db.padding end,
-            setFunc = function( padding ) self.db.padding = padding end,
+            setFunc = function( padding ) self.db.padding = tonumber( padding ) end,
         },
         [ 12 ] = 
         {
             type = 'header',
             name = 'Text Style',
-            reference = 'LootDrop_TextStyle_Submenu'
+            reference = 'LootDrop_TextStyle_Header'
         },
         [ 13 ] = 
         { 
@@ -164,10 +158,10 @@ function LootDropConfig:Initialize( db )
         {
             type = 'editbox',
             name = 'Font Size',
-            numeric = true,
+            textType = TEXT_TYPE_NUMERIC,
             getFunc = function() return self.db.font.size end,
             setFunc = function( size ) 
-                    self.db.font.size = size 
+                    self.db.font.size = tonumber( size ) 
                     self:UpdateFont() 
                 end,
         },
@@ -177,22 +171,13 @@ function LootDropConfig:Initialize( db )
             name = 'Font Decoration',
             tooltip = 'Decoration for the font, like shadows.',
             choices = decorations,
-            getFunc = function() return self.db.font.decoration end,
+            getFunc = function() return self.db.font.deco end,
             setFunc = function( choice ) 
-                    self.db.font.decoration = choice 
+                    self.db.font.deco = choice 
                     self:UpdateFont() 
                 end,
-            width = 'full'
-        },
-        [ 16 ] = 
-        {
-            type = 'dropdown',
-            name = 'Font Alignment',
-            tooltip = 'Where should the font align.',
-            choices = alignments,
-            getFunc = function() return self.db.font.align end,
-            setFunc = function( choice ) self.db.font.align = choice end,
-            width = 'full'
+            width = 'full',
+            default = 'thin-outline',
         },
     }
 
@@ -200,16 +185,16 @@ function LootDropConfig:Initialize( db )
 end
 
 function LootDropConfig:UpdateFont()
-    local Submenu = _G[ 'LootDrop_TextStyle_Submenu' ]
+    local Header = _G[ 'LootDrop_TextStyle_Header' ]
 
-    if ( Submenu ) then
+    if ( Header ) then
         local path = LMP:Fetch( LMP.MediaType.FONT, self.db.font.face )
         local fmt = '%s|%d'
-        if ( self.db.font.decoration ~= 'none' ) then
+        if ( self.db.font.deco ~= 'none' ) then
             fmt = fmt .. '|%s'
         end
 
-        Submenu.label:SetFont( fmt:format( path, self.db.font.size, self.db.font.decoration ) )
+        Header.header:SetFont( fmt:format( path, self.db.font.size, self.db.font.deco or '' ) )
     end
 end
 

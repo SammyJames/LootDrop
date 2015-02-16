@@ -6,6 +6,7 @@
 	setFunc = function(text) db.text = text doStuff() end,
 	isMultiline = true,	--boolean
 	width = "full",	--or "half" (optional)
+	textType = TEXT_TYPE_ALL, --(optional)
 	disabled = function() return db.someBooleanSetting end,	--or boolean (optional)
 	warning = "Will need to reload the UI.",	--(optional)
 	default = defaults.text,	--(optional)
@@ -13,7 +14,7 @@
 }	]]
 
 
-local widgetVersion = 6
+local widgetVersion = 7
 local LAM = LibStub("LibAddonMenu-2.0")
 if not LAM:RegisterWidget("editbox", widgetVersion) then return end
 
@@ -105,6 +106,7 @@ function LAMCreateControl.editbox(parent, editboxData, controlName)
 	local editbox = control.editbox
 	editbox:SetText(editboxData.getFunc())
 	editbox:SetMaxInputChars(3000)
+	editbox:SetTextType( editboxData.textType or TEXT_TYPE_ALL )
 	editbox:SetHandler("OnFocusLost", function(self) control:UpdateValue(false, self:GetText()) end)
 	editbox:SetHandler("OnEscape", function(self) self:LoseFocus() control:UpdateValue(false, self:GetText()) end)
 	editbox:SetHandler("OnMouseEnter", function() ZO_Options_OnMouseEnter(control) end)
