@@ -27,8 +27,6 @@ local LootDropPop       = LootDropPop
 
 local _
 
-
-
 local defaults =
 {
     displayduration = 10,
@@ -49,6 +47,7 @@ local DirtyFlags =
 }
 
 --- Create our ObjectPool
+--
 -- @param ...
 function LootDrop:New( ... )
     local result = LootDropPool.New( self )
@@ -57,6 +56,7 @@ function LootDrop:New( ... )
 end
 
 --- I swear I'm going to use this for something
+--
 -- @param ...
 function LootDrop:Initialize( control )
     LootDropPool.Initialize( self, function() return self:CreateDroppable() end, function( ... ) self:ResetDroppable( ... ) end  )
@@ -82,6 +82,10 @@ function LootDrop:Initialize( control )
     CBM:RegisterCallback( Config.EVENT_TOGGLE_BT,   function() self:ToggleBT()      end )
 end
 
+--- Called when the addon is loaded
+-- 
+-- @param event     the event id, we don't really care about
+-- @param addon     the string name of the addon loaded
 function LootDrop:OnLoaded( event, addon )
     if ( addon ~= 'LootDrop' ) then
         return
