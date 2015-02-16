@@ -11,6 +11,9 @@ local CBM = CALLBACK_MANAGER
 local LAM = LibStub( 'LibAddonMenu-2.0' )
 if ( not LAM ) then return end
 
+local LMP = LibStub( 'LibMediaProvider-1.0' )
+if ( not LMP ) then return end
+
 function LootDropConfig:New( ... )
     local result = ZO_Object.New( self )
     result:Initialize( ... )
@@ -24,11 +27,30 @@ function LootDropConfig:Initialize( db )
             type = 'panel', 
             name = 'LootDrop', 
             author = 'Pawkette', 
-            version = '1.0', 
+            version = '100010', 
             slashCommand = '/lootdrop', 
             registerForRefresh = true,
             registerForDefaults = true 
         } )
+
+
+    local decorations = 
+    { 
+        'none', 
+        'outline', 
+        'thin-outline', 
+        'thick-outline', 
+        'soft-shadow-thin', 
+        'soft-shadow-thick', 
+        'shadow' 
+    }
+
+    local alignments = 
+    {
+        "CENTER", 
+        "LEFT", 
+        "RIGHT"
+    }
 
     local options = 
     {
@@ -96,6 +118,7 @@ function LootDropConfig:Initialize( db )
         {
             type = 'editbox',
             name = 'Width',
+            numeric = true,
             tooltip = 'The width of each dropper.',
             getFunc = function() return self.db.width end,
             setFunc = function( width ) self.db.width = width end,
@@ -104,6 +127,7 @@ function LootDropConfig:Initialize( db )
         {
             type = 'editbox',
             name = 'Height',
+            numeric = true,
             tooltip = 'The height of each dropper.',
             getFunc = function() return self.db.height end,
             setFunc = function( height ) self.db.height = height end,
@@ -112,13 +136,85 @@ function LootDropConfig:Initialize( db )
         {
             type = 'editbox',
             name = 'Padding',
+            numeric = true,
             tooltip = 'The padding between each dropper.',
             getFunc = function() return self.db.padding end,
             setFunc = function( padding ) self.db.padding = padding end,
         },
+        [ 12 ] = 
+        {
+            type = 'submenu',
+            name = 'Text Style',
+            tooltip = 'What would you like the text to look like.',
+            reference = 'LootDrop_TextStyle_Submenu'
+            controls = 
+            {
+                [ 1 ] = 
+                { 
+                    type = 'dropdown',
+                    name = 'Font Face',
+                    tooltip = 'Pick a font (LMP support).',
+                    choices = LMP:List( LMP.MediaType.FONT ),
+                    getFunc = function() return self.db.font.face end,
+                    setFunc = function( choice ) 
+                            self.db.font.face = choice 
+                            self:UpdateFont() 
+                        end,
+                    width = 'full'
+                },
+                [ 2 ] = 
+                {
+                    type = 'editbox',
+                    name = 'Font Size',
+                    numeric = true,
+                    getFunc = function() return self.db.font.size end,
+                    setFunc = function( size ) 
+                            self.db.font.size = size 
+                            self:UpdateFont() 
+                        end,
+                },
+                [ 3 ] = 
+                {
+                    type = 'dropdown',
+                    name = 'Font Decoration',
+                    tooltip = 'Decoration for the font, like shadows.',
+                    choices = decorations,
+                    getFunc = function() return self.db.font.decoration end,
+                    setFunc = function( choice ) 
+                            self.db.font.decoration = choice 
+                            self:UpdateFont() 
+                        end,
+                    width = 'full'
+                },
+                [ 4 ] = 
+                {
+                    type = 'dropdown',
+                    name = 'Font Alignment',
+                    tooltip = 'Where should the font align.',
+                    choices = alignments,
+                    getFunc = function() return self.db.font.align end,
+                    setFunc = function( choice ) self.db.font.align = choice end,
+                    width = 'full'
+                },
+            }
+        }
     }
 
     LAM:RegisterOptionControls( 'LootDrop_Config', options )
+end
+
+function LootDropConfig:UpdateFont()
+    local Submenu = _G[ 'LootDrop_TextStyle_Submenu' ]
+
+    if ( Submenu ) then
+        local path = LMP:Fetch( LMP.MediaType.FONT, self.db.font.face )
+        local fmt = '%s|%d'
+        if ( self.db.font.decoration ~= 'none' ) then
+            fmt = fmt .. '|%s'
+        end
+
+        Submenu.label:SetFont( fmt:format( path, self.db.font.size, self.db.font.decoration ) )
+    end
 end
 
 function LootDropConfig:ToggleXP()

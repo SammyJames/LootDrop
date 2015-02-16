@@ -1,6 +1,6 @@
 ## Title: LootDrop - By |cFF66CCPawkette|r
 ## APIVersion: 100010
-## OptionalDependsOn: LibAddonMenu-2.0, LibAnimation-1.0, LibStub
+## OptionalDependsOn: LibAddonMenu-2.0, LibAnimation-1.0, LibMediaProvider-1.0, LibStub
 ## SavedVariables: LOOTDROP_DB
 
 ## Libraries:
@@ -19,6 +19,7 @@ Libs/LibAddonMenu-2.0/controls/editbox.lua
 Libs/LibAddonMenu-2.0/controls/header.lua
 Libs/LibAddonMenu-2.0/controls/slider.lua
 Libs/LibAddonMenu-2.0/controls/texture.lua
+Libs/LibMediaProvider-1.0/LibMediaProvider-1.0.lua
 Libs/UTF8/utf8data.lua
 Libs/UTF8/utf8.lua
 

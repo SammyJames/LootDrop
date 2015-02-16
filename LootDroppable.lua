@@ -7,6 +7,9 @@
 
 LootDroppable = ZO_Object:Subclass()
 
+local LMP = LibStub( 'LibMediaProvider-1.0' )
+if ( !LMP ) then return end
+
 --- Create a new instance of a LootDroppable
 -- @treturn LootDroppable
 function LootDroppable:New( ... )
@@ -25,6 +28,22 @@ function LootDroppable:Initialize( objectPool )
     self.icon    = self.control:GetNamedChild( '_Icon' )
     self.border  = self.control:GetNamedChild( '_Rarity' )
     self.bg      = self.control:GetNamedChild( '_BG' )
+
+    if ( self.label ) then
+        if ( self.db.font.face = '' ) then
+            self.label:SetFont( ZoFontGame )
+        else
+            local path = LMP:Fetch( LMP.MediaType.FONT, self.db.font.face )
+            local fmt = '%s|%d'
+            if ( self.db.font.decoration ~= 'none' ) then
+                fmt = fmt .. '|%s'
+            end
+
+            self.label:SetFont( fmt:format( path, self.db.font.size, self.db.font.decoration ) )
+        end
+
+        self.label:SetHorizontalAlignment( _G[ "TEXT_ALIGN_" .. self.db.font.align ] )
+    end
 end
 
 --- Visibility Getter
