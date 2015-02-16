@@ -143,61 +143,57 @@ function LootDropConfig:Initialize( db )
         },
         [ 12 ] = 
         {
-            type = 'submenu',
+            type = 'header',
             name = 'Text Style',
-            tooltip = 'What would you like the text to look like.',
             reference = 'LootDrop_TextStyle_Submenu'
-            controls = 
-            {
-                [ 1 ] = 
-                { 
-                    type = 'dropdown',
-                    name = 'Font Face',
-                    tooltip = 'Pick a font (LMP support).',
-                    choices = LMP:List( LMP.MediaType.FONT ),
-                    getFunc = function() return self.db.font.face end,
-                    setFunc = function( choice ) 
-                            self.db.font.face = choice 
-                            self:UpdateFont() 
-                        end,
-                    width = 'full'
-                },
-                [ 2 ] = 
-                {
-                    type = 'editbox',
-                    name = 'Font Size',
-                    numeric = true,
-                    getFunc = function() return self.db.font.size end,
-                    setFunc = function( size ) 
-                            self.db.font.size = size 
-                            self:UpdateFont() 
-                        end,
-                },
-                [ 3 ] = 
-                {
-                    type = 'dropdown',
-                    name = 'Font Decoration',
-                    tooltip = 'Decoration for the font, like shadows.',
-                    choices = decorations,
-                    getFunc = function() return self.db.font.decoration end,
-                    setFunc = function( choice ) 
-                            self.db.font.decoration = choice 
-                            self:UpdateFont() 
-                        end,
-                    width = 'full'
-                },
-                [ 4 ] = 
-                {
-                    type = 'dropdown',
-                    name = 'Font Alignment',
-                    tooltip = 'Where should the font align.',
-                    choices = alignments,
-                    getFunc = function() return self.db.font.align end,
-                    setFunc = function( choice ) self.db.font.align = choice end,
-                    width = 'full'
-                },
-            }
-        }
+        },
+        [ 13 ] = 
+        { 
+            type = 'dropdown',
+            name = 'Font Face',
+            tooltip = 'Pick a font (LMP support).',
+            choices = LMP:List( LMP.MediaType.FONT ),
+            getFunc = function() return self.db.font.face end,
+            setFunc = function( choice ) 
+                    self.db.font.face = choice 
+                    self:UpdateFont() 
+                end,
+            width = 'full'
+        },
+        [ 14 ] = 
+        {
+            type = 'editbox',
+            name = 'Font Size',
+            numeric = true,
+            getFunc = function() return self.db.font.size end,
+            setFunc = function( size ) 
+                    self.db.font.size = size 
+                    self:UpdateFont() 
+                end,
+        },
+        [ 15 ] = 
+        {
+            type = 'dropdown',
+            name = 'Font Decoration',
+            tooltip = 'Decoration for the font, like shadows.',
+            choices = decorations,
+            getFunc = function() return self.db.font.decoration end,
+            setFunc = function( choice ) 
+                    self.db.font.decoration = choice 
+                    self:UpdateFont() 
+                end,
+            width = 'full'
+        },
+        [ 16 ] = 
+        {
+            type = 'dropdown',
+            name = 'Font Alignment',
+            tooltip = 'Where should the font align.',
+            choices = alignments,
+            getFunc = function() return self.db.font.align end,
+            setFunc = function( choice ) self.db.font.align = choice end,
+            width = 'full'
+        },
     }
 
     LAM:RegisterOptionControls( 'LootDrop_Config', options )
