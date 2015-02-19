@@ -33,7 +33,6 @@ function LootDropConfig:Initialize( db )
             registerForDefaults = true 
         } )
 
-
     local decorations = 
     { 
         'none', 
