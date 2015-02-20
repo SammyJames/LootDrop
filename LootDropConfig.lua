@@ -27,7 +27,7 @@ function LootDropConfig:Initialize( db )
             type = 'panel', 
             name = 'LootDrop', 
             author = '|cFF66CCPawkette|r', 
-            version = '100010', 
+            version = '1.6', 
             slashCommand = '/lootdrop', 
             registerForRefresh = true,
             registerForDefaults = true 

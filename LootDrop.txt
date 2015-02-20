@@ -1,6 +1,6 @@
 ## Title: LootDrop 
 ## Author: |cFF66CCPawkette|r
-## APIVersion: 100010
+## APIVersion: 100011
 ## OptionalDependsOn: LibAddonMenu-2.0, LibAnimation-1.0, LibMediaProvider-1.0, LibStub
 ## SavedVariables: LOOTDROP_DB
 

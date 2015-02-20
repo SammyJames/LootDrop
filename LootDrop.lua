@@ -96,6 +96,7 @@ function LootDrop:OnLoaded( event, addon )
     if ( addon ~= 'LootDrop' ) then
         return
     end
+
     self.db     = ZO_SavedVars:NewAccountWide( 'LOOTDROP_DB', 2.8, nil, defaults )
     self.config = Config:New( self.db )
 
@@ -313,7 +314,8 @@ end
 -- @param itemName  the name of the item looted (link)
 -- @param quantity  the number of items looted
 -- @param mine      if this item is the local player's
-function LootDrop:OnItemLooted( _, itemName, quantity, _, _, mine )
+-- @param picked    if this item came from a pickpocket  
+function LootDrop:OnItemLooted( _, itemName, quantity, _, _, mine, picked )
     if ( not mine ) then
         return
     end
