@@ -23,7 +23,10 @@ function LootDropAnimPool:Apply( control )
     anim:Apply( control )
     anim:SetHandler( 'OnStop', 
         function( animation ) 
-            self:ReleaseObject( anim:GetUserData() ) 
+             if ( animation:GetProgress() == 1.0 ) then
+                self:ReleaseObject( anim:GetUserData() ) 
+                animation:SetHandler( 'OnStop', nil )
+            end
         end )
 
     return anim
